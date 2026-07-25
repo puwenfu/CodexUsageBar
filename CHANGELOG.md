@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Refreshed the repository overview with build, release, download, platform, and license status.
+- Updated pinned GitHub Actions to their Node.js 24-backed stable releases.
 
 ### Fixed
 - Replaced the stale hard-coded app-server client version with the current CodexUsageBar product version.

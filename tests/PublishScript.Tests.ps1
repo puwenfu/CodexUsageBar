@@ -341,9 +341,9 @@ Describe 'release documentation and local build contracts' {
 
         $workflow = Get-Content -LiteralPath $workflowPath -Raw
         $workflow | Should Match 'windows-latest'
-        $workflow | Should Match 'actions/checkout@[0-9a-f]{40}\s+# v4'
-        $workflow | Should Match 'actions/setup-dotnet@[0-9a-f]{40}\s+# v4'
-        $workflow | Should Match 'actions/upload-artifact@[0-9a-f]{40}\s+# v4'
+        $workflow | Should Match 'actions/checkout@[0-9a-f]{40}\s+# v7'
+        $workflow | Should Match 'actions/setup-dotnet@[0-9a-f]{40}\s+# v6'
+        $workflow | Should Match 'actions/upload-artifact@[0-9a-f]{40}\s+# v7'
         $workflow | Should Match 'dotnet restore CodexUsageBar\.sln'
         $workflow | Should Match 'dotnet build CodexUsageBar\.sln --configuration Release --no-restore'
         $workflow | Should Match 'dotnet test CodexUsageBar\.sln --configuration Release --no-build'
