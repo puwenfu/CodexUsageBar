@@ -31,14 +31,39 @@ jobs:
       - name: Test
         run: dotnet test CodexUsageBar.sln --configuration Release --no-build --verbosity minimal
 
-      - name: Install Pester
+      - name: Prepare Pester
         shell: powershell
-        run: Install-Module Pester -RequiredVersion 4.10.1 -Force -Scope CurrentUser
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $package = Join-Path $env:RUNNER_TEMP 'Pester.4.10.1.zip'
+          $moduleRoot = Join-Path $env:RUNNER_TEMP 'Pester-4.10.1'
+          Invoke-WebRequest `
+            -Uri 'https://www.powershellgallery.com/api/v2/package/Pester/4.10.1' `
+            -OutFile $package
+          $actualHash = (Get-FileHash -LiteralPath $package -Algorithm SHA256).Hash
+          $expectedHash = '898210E1A30C52CD46BA317C2278A9324345214213AA2F7D6B7DFA7B98F37AC9'
+          if ($actualHash -cne $expectedHash) {
+            throw "Pester package hash mismatch: $actualHash"
+          }
+          Expand-Archive -LiteralPath $package -DestinationPath $moduleRoot
+          $manifest = Join-Path $moduleRoot 'Pester.psd1'
+          "PESTER_MANIFEST=$manifest" |
+            Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Test release helpers
         shell: powershell
-        run: Invoke-Pester -Path '.\\tests\\PublishSupport.Tests.ps1'
+        run: |
+          Import-Module $env:PESTER_MANIFEST -Force -ErrorAction Stop
+          if ((Get-Module Pester).Version -ne [version]'4.10.1') {
+            throw 'Wrong Pester version loaded.'
+          }
+          Invoke-Pester -Path '.\\tests\\PublishSupport.Tests.ps1' -EnableExit
 
       - name: Test release workflow
         shell: powershell
-        run: Invoke-Pester -Path '.\\tests\\PublishScript.Tests.ps1'
+        run: |
+          Import-Module $env:PESTER_MANIFEST -Force -ErrorAction Stop
+          if ((Get-Module Pester).Version -ne [version]'4.10.1') {
+            throw 'Wrong Pester version loaded.'
+          }
+          Invoke-Pester -Path '.\\tests\\PublishScript.Tests.ps1' -EnableExit
