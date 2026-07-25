@@ -1,0 +1,34 @@
+name: Feature request
+description: Propose an improvement based on a user goal.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: User goal
+      description: What are you trying to accomplish?
+    validations:
+      required: true
+  - type: textarea
+    id: obstacle
+    attributes:
+      label: Current obstacle
+      description: What makes that goal difficult today?
+    validations:
+      required: true
+  - type: textarea
+    id: experience
+    attributes:
+      label: Desired experience
+      description: Describe the outcome and interaction that would feel right.
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Acceptable limitations
+      description: What tradeoffs, limitations, or non-goals are acceptable?
+    validations:
+      required: true

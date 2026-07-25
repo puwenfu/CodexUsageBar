@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\CodexUsageBar.Core\CodexUsageBar.Core.csproj" />
+    <ProjectReference Include="..\CodexUsageBar.CodexProtocol\CodexUsageBar.CodexProtocol.csproj" />
+    <ProjectReference Include="..\CodexUsageBar.Windows\CodexUsageBar.Windows.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>true</UseWPF>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+</Project>

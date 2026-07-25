@@ -1,0 +1,13 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <FontFamily x:Key="WidgetFontFamily">Segoe UI Variable Display</FontFamily>
+    <SolidColorBrush x:Key="WidgetBackgroundBrush" Color="Transparent" />
+    <SolidColorBrush x:Key="QuotaTrackBrush" Color="#342B45" />
+    <SolidColorBrush x:Key="QuotaPrimaryTextBrush" Color="#F8F7FC" />
+    <SolidColorBrush x:Key="QuotaSecondaryTextBrush" Color="#A9A4B2" />
+    <LinearGradientBrush x:Key="QuotaProgressBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="#8D9EFC" />
+        <GradientStop Offset="0.52" Color="#585EF6" />
+        <GradientStop Offset="1" Color="#4E4FF4" />
+    </LinearGradientBrush>
+</ResourceDictionary>

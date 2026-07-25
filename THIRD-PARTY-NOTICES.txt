@@ -1,0 +1,21 @@
+CodexUsageBar Third-Party Notices
+=================================
+
+The self-contained Windows release of CodexUsageBar includes components from
+the Microsoft .NET runtime.
+
+.NET licensing information:
+https://github.com/dotnet/core/blob/main/license-information.md
+
+.NET runtime license:
+https://github.com/dotnet/runtime/blob/main/LICENSE.TXT
+
+.NET runtime third-party notices:
+https://github.com/dotnet/runtime/blob/main/THIRD-PARTY-NOTICES.TXT
+
+The source repository also uses Microsoft.NET.Test.Sdk, xUnit, and
+xunit.runner.visualstudio for tests. These test packages are not shipped as
+separate runtime dependencies in the CodexUsageBar release archive.
+
+Each upstream component remains subject to its own license terms. CodexUsageBar
+does not claim ownership of third-party components or trademarks.

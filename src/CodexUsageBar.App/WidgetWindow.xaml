@@ -1,0 +1,222 @@
+<Window x:Class="CodexUsageBar.App.WidgetWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:CodexUsageBar.App.Controls"
+        Title="Codex Usage"
+        Width="168"
+        MinWidth="150"
+        MaxWidth="180"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        ResizeMode="NoResize"
+        Topmost="False"
+        Background="{DynamicResource WidgetBackgroundBrush}"
+        FontFamily="{DynamicResource WidgetFontFamily}"
+        SnapsToDevicePixels="True"
+        UseLayoutRounding="True">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/CodexUsageBar.App;component/Themes/ContextMenuTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid x:Name="WidgetRoot"
+          Background="{DynamicResource WidgetBackgroundBrush}"
+          ToolTip="{Binding Tooltip}"
+          ClipToBounds="True"
+          PreviewMouseLeftButtonDown="OnPreviewMouseLeftButtonDown">
+        <Grid.ContextMenu>
+            <ContextMenu Style="{StaticResource CodexContextMenuStyle}"
+                         Opened="OnContextMenuOpened">
+                <MenuItem Header="立即刷新"
+                          controls:MenuChrome.IsRootItem="True"
+                          Style="{StaticResource CodexMenuItemStyle}"
+                          Click="OnRefreshMenuClick">
+                    <MenuItem.Icon>
+                        <Path Data="{StaticResource MenuRefreshIcon}"
+                              Style="{StaticResource CodexMenuIconStyle}" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="主题颜色"
+                          controls:MenuChrome.IsRootItem="True"
+                          Style="{StaticResource CodexMenuItemStyle}">
+                    <MenuItem.Icon>
+                        <Path Data="{StaticResource MenuThemeIcon}"
+                              Style="{StaticResource CodexMenuIconStyle}" />
+                    </MenuItem.Icon>
+                    <MenuItem x:Name="ThemeBlueMenuItem"
+                              Header="星海蓝"
+                              Tag="Theme"
+                              IsCheckable="True"
+                              Padding="{StaticResource ContextSubmenuItemPadding}"
+                              Style="{StaticResource CodexMenuItemStyle}"
+                              Click="OnThemeBlueClick">
+                        <MenuItem.Icon>
+                            <Ellipse Width="13" Height="13">
+                                <Ellipse.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Offset="0" Color="#8D9EFC" />
+                                        <GradientStop Offset="0.52" Color="#585EF6" />
+                                        <GradientStop Offset="1" Color="#4E4FF4" />
+                                    </LinearGradientBrush>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem x:Name="ThemePurpleMenuItem"
+                              Header="暮夜紫"
+                              Tag="Theme"
+                              IsCheckable="True"
+                              Padding="{StaticResource ContextSubmenuItemPadding}"
+                              Style="{StaticResource CodexMenuItemStyle}"
+                              Click="OnThemePurpleClick">
+                        <MenuItem.Icon>
+                            <Ellipse Width="13" Height="13">
+                                <Ellipse.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Offset="0" Color="#D4A7FF" />
+                                        <GradientStop Offset="0.52" Color="#9B6CFF" />
+                                        <GradientStop Offset="1" Color="#5B43FF" />
+                                    </LinearGradientBrush>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem x:Name="ThemeMintMenuItem"
+                              Header="沁薄荷"
+                              Tag="Theme"
+                              IsCheckable="True"
+                              Padding="{StaticResource ContextSubmenuItemPadding}"
+                              Style="{StaticResource CodexMenuItemStyle}"
+                              Click="OnThemeMintClick">
+                        <MenuItem.Icon>
+                            <Ellipse Width="13" Height="13">
+                                <Ellipse.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Offset="0" Color="#EBFFCD" />
+                                        <GradientStop Offset="0.52" Color="#54E3CA" />
+                                        <GradientStop Offset="1" Color="#677FE4" />
+                                    </LinearGradientBrush>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem x:Name="ThemeForestMenuItem"
+                              Header="苍森绿"
+                              Tag="Theme"
+                              IsCheckable="True"
+                              Padding="{StaticResource ContextSubmenuItemPadding}"
+                              Style="{StaticResource CodexMenuItemStyle}"
+                              Click="OnThemeForestClick">
+                        <MenuItem.Icon>
+                            <Ellipse Width="13" Height="13">
+                                <Ellipse.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Offset="0" Color="#E0F8BA" />
+                                        <GradientStop Offset="0.52" Color="#D3E52D" />
+                                        <GradientStop Offset="1" Color="#0C6651" />
+                                    </LinearGradientBrush>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </MenuItem>
+                <MenuItem x:Name="HideFiveHourMenuItem"
+                          Header="隐藏 5 小时"
+                          Tag="Toggle"
+                          IsCheckable="True"
+                          controls:MenuChrome.IsRootItem="True"
+                          Style="{StaticResource CodexMenuItemStyle}"
+                          Click="OnHideFiveHourClick">
+                    <MenuItem.Icon>
+                        <Path Data="{StaticResource MenuHideIcon}"
+                              Style="{StaticResource CodexMenuIconStyle}" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Name="StartupMenuItem"
+                          Header="开机启动"
+                          Tag="Toggle"
+                          IsCheckable="True"
+                          controls:MenuChrome.IsRootItem="True"
+                          Style="{StaticResource CodexMenuItemStyle}"
+                          Click="OnStartupMenuClick">
+                    <MenuItem.Icon>
+                        <Path Data="{StaticResource MenuStartupIcon}"
+                              Style="{StaticResource CodexMenuIconStyle}" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="调试面板"
+                          controls:MenuChrome.IsRootItem="True"
+                          Style="{StaticResource CodexMenuItemStyle}"
+                          Click="OnDebugMenuClick">
+                    <MenuItem.Icon>
+                        <Path Data="{StaticResource MenuDebugIcon}"
+                              Style="{StaticResource CodexMenuIconStyle}" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="关于"
+                          controls:MenuChrome.IsRootItem="True"
+                          Style="{StaticResource CodexMenuItemStyle}">
+                    <MenuItem.Icon>
+                        <Path Data="{StaticResource MenuAboutIcon}"
+                              Style="{StaticResource CodexMenuIconStyle}" />
+                    </MenuItem.Icon>
+                    <MenuItem Style="{StaticResource CodexAboutItemStyle}">
+                        <MenuItem.Header>
+                            <StackPanel Width="168">
+                                <TextBlock Text="Codex Usage Bar"
+                                           Foreground="{StaticResource ContextMenuPrimaryTextBrush}"
+                                           FontSize="13" />
+                                <TextBlock Margin="0,7,0,0"
+                                           TextWrapping="Wrap">
+                                    <Run Text="安静显示 Codex 剩余额度与" />
+                                    <LineBreak />
+                                    <Run Text="重置时间。" />
+                                </TextBlock>
+                                <TextBlock x:Name="AboutVersionText"
+                                           Margin="0,10"
+                                           Foreground="#D0D1D4" />
+                                <TextBlock Text="by Wenfu Pu"
+                                           Foreground="#85868B" />
+                            </StackPanel>
+                        </MenuItem.Header>
+                    </MenuItem>
+                </MenuItem>
+                <Separator Style="{StaticResource CodexSeparatorStyle}" />
+                <MenuItem Header="退出"
+                          Tag="Exit"
+                          controls:MenuChrome.IsRootItem="True"
+                          Style="{StaticResource CodexMenuItemStyle}"
+                          Click="OnExitMenuClick">
+                    <MenuItem.Icon>
+                        <Path Data="{StaticResource MenuExitIcon}"
+                              Style="{StaticResource CodexMenuIconStyle}" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </ContextMenu>
+        </Grid.ContextMenu>
+        <controls:QuotaWidgetPanel HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Center"
+                                   Margin="2,0,0,0"
+                                   Height="{Binding RingDiameterDip}">
+            <controls:QuotaMeter x:Name="FiveHourMeter"
+                                 DataContext="{Binding FiveHour}"
+                                 IsRefreshing="{Binding DataContext.IsRefreshing,
+                                                        RelativeSource={RelativeSource AncestorType=Window}}"
+                                 RingDiameter="{Binding DataContext.RingDiameterDip, RelativeSource={RelativeSource AncestorType=Window}}" />
+            <controls:AdaptiveResetText x:Name="FiveHourResetText"
+                                        Text="{Binding FiveHour.ResetText}" />
+
+            <controls:QuotaMeter DataContext="{Binding Weekly}"
+                                 IsRefreshing="{Binding DataContext.IsRefreshing,
+                                                        RelativeSource={RelativeSource AncestorType=Window}}"
+                                 RingDiameter="{Binding DataContext.RingDiameterDip, RelativeSource={RelativeSource AncestorType=Window}}" />
+            <controls:AdaptiveResetText Text="{Binding Weekly.ResetText}" />
+        </controls:QuotaWidgetPanel>
+    </Grid>
+</Window>

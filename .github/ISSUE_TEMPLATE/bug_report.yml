@@ -1,0 +1,51 @@
+name: Bug report
+description: Report a reproducible CodexUsageBar problem.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not attach credentials, account information, raw Codex responses, or
+        unredacted logs. Redact screenshots before uploading them.
+  - type: input
+    id: windows-version
+    attributes:
+      label: Windows version
+      description: Include the Windows 11 edition and build number.
+    validations:
+      required: true
+  - type: input
+    id: display-and-taskbar
+    attributes:
+      label: Display scaling and taskbar position
+      description: Include display scaling (for example, 100%, 150%, or 200%) and taskbar position.
+    validations:
+      required: true
+  - type: input
+    id: codex-version
+    attributes:
+      label: Codex App or CLI version
+      description: State whether you use the Codex App or CLI and its version.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: 1. ...\n2. ...\n3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+    validations:
+      required: true
