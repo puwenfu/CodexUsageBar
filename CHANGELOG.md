@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Refreshed the repository overview with build, release, download, platform, and license status.
+
+### Fixed
+- Replaced the stale hard-coded app-server client version with the current CodexUsageBar product version.
+
 ## [1.2.4] - 2026-07-26
 ### Changed
 - Reduced menu icon size to 80% while preserving menu item hit targets and alignment.

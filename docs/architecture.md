@@ -7,7 +7,8 @@ Explorer recovery, and optional startup control.
 
 ## Data flow
 
-The protocol adapter requests quota information from the local Codex app-server.
+The protocol adapter identifies itself with the current application product
+version and requests quota information from the local Codex app-server.
 The core layer converts safe results into the five-hour and weekly display
 models. The WPF application renders those models as two compact meters and
 places its host inside the primary bottom taskbar rectangle. Authentication

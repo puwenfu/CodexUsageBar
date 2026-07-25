@@ -1,6 +1,16 @@
 # CodexUsageBar
 
-> An unofficial community project. Not affiliated with or endorsed by OpenAI.
+A quiet Windows 11 taskbar overlay for Codex quota usage.
+
+[![CI](https://github.com/puwenfu/CodexUsageBar/actions/workflows/ci.yml/badge.svg)](https://github.com/puwenfu/CodexUsageBar/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/puwenfu/CodexUsageBar?display_name=tag&sort=semver)](https://github.com/puwenfu/CodexUsageBar/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/puwenfu/CodexUsageBar/total)](https://github.com/puwenfu/CodexUsageBar/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-7C3AED.svg)](LICENSE)
+[![Windows 11](https://img.shields.io/badge/Windows-11-0078D4?logo=windows11)](https://www.microsoft.com/windows/windows-11)
+
+**[Download the latest release](https://github.com/puwenfu/CodexUsageBar/releases/latest)**
+
+> Unofficial community project. Not affiliated with or endorsed by OpenAI.
 
 ![Deterministic CodexUsageBar WPF preview with sample values](assets/codex-usage-bar-taskbar.png)
 
@@ -13,6 +23,7 @@ a live Windows Shell screenshot.
 - Uses two compact meters inside the primary Windows 11 taskbar.
 - Refreshes on demand without taking focus or blocking nearby taskbar controls.
 - Keeps the last safe values visible when Codex is temporarily unavailable.
+- Runs as a self-contained executable without storing Codex credentials.
 
 ## Requirements
 
@@ -46,7 +57,8 @@ Startup is disabled by default.
 
 ## Privacy
 
-The widget reads quota data through the local Codex app-server protocol. It does
+The widget reads quota data through the local Codex app-server protocol and
+identifies itself with the current CodexUsageBar application version. It does
 not copy or persist credentials, account identifiers, raw quota responses, or
 task content. See [Privacy](docs/privacy.md) for details.
 
