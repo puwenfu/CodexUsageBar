@@ -238,10 +238,9 @@ public sealed class CodexQuotaClientTests
     [Fact]
     public async Task RefreshAsync_FailureAfterAccountChangeDisposesOldAndFailedSessions()
     {
-        var factory = new RecordingSessionFactory(
-            TimeSpan.FromMilliseconds(100),
-            "account-a",
-            "account-b-rate-timeout");
+        var first = ScriptedSession.Success("account-a");
+        var second = ScriptedSession.RateFailure("account-b", disposeThrows: false);
+        var factory = new ScriptedSessionFactory(first, second);
         await using var client = new CodexQuotaClient(factory);
         var changes = 0;
         client.AccountChanged += (_, _) => changes++;
@@ -251,7 +250,8 @@ public sealed class CodexQuotaClientTests
             () => client.RefreshAsync(CancellationToken.None));
 
         Assert.Equal(1, changes);
-        Assert.Equal(0, factory.LiveSessionCount);
+        Assert.Equal(0, first.LiveResourceCount);
+        Assert.Equal(0, second.LiveResourceCount);
     }
 
     [Fact]
