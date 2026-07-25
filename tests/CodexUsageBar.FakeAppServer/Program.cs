@@ -6,6 +6,11 @@ public static class FakeAppServerMarker;
 
 internal static class Program
 {
+    private static readonly string ExpectedClientVersion =
+        typeof(Program).Assembly.GetName().Version?.ToString(3)
+        ?? throw new InvalidOperationException(
+            "The fake app-server assembly does not define a product version.");
+
     public static async Task<int> Main(string[] args)
     {
         if (args.Length != 1)
@@ -260,7 +265,7 @@ internal static class Program
         var clientInfo = parameters.GetProperty("clientInfo");
         return clientInfo.GetProperty("name").GetString() == "CodexUsageBar"
             && clientInfo.GetProperty("title").GetString() == "Codex Usage Bar"
-            && clientInfo.GetProperty("version").GetString() == "0.1.0"
+            && clientInfo.GetProperty("version").GetString() == ExpectedClientVersion
             && !parameters.GetProperty("capabilities")
                 .GetProperty("experimentalApi")
                 .GetBoolean();

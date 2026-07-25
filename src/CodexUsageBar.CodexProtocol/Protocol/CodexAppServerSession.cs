@@ -71,9 +71,9 @@ internal sealed class CodexAppServerSession : ICodexAppServerSession
                 {
                     clientInfo = new
                     {
-                        name = "CodexUsageBar",
-                        title = "Codex Usage Bar",
-                        version = "0.1.0",
+                        name = CodexProtocolClientMetadata.Name,
+                        title = CodexProtocolClientMetadata.Title,
+                        version = CodexProtocolClientMetadata.Version,
                     },
                     capabilities = new { experimentalApi = false },
                 },

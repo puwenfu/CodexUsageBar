@@ -6,9 +6,10 @@ goal per pull request.
 
 ## Requirements
 
-Use Windows 11 and the .NET 8 SDK. Do not commit `dist/`, `artifacts/`, logs,
-or captured credentials. Keep raw Codex data and account information out of
-issues, tests, fixtures, and screenshots.
+Use Windows 11 and the SDK selected by `global.json` (currently .NET 8.0.423).
+Do not commit `dist/`, `artifacts/`, logs, or captured credentials. Keep raw
+Codex data and account information out of issues, tests, fixtures, and
+screenshots.
 
 ## Build and test
 
