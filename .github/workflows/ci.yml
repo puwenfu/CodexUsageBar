@@ -53,6 +53,7 @@ jobs:
       - name: Test release helpers
         shell: powershell
         run: |
+          $ErrorActionPreference = 'Continue'
           Import-Module $env:PESTER_MANIFEST -Force -ErrorAction Stop
           if ((Get-Module Pester).Version -ne [version]'4.10.1') {
             throw 'Wrong Pester version loaded.'
@@ -62,6 +63,7 @@ jobs:
       - name: Test release workflow
         shell: powershell
         run: |
+          $ErrorActionPreference = 'Continue'
           Import-Module $env:PESTER_MANIFEST -Force -ErrorAction Stop
           if ((Get-Module Pester).Version -ne [version]'4.10.1') {
             throw 'Wrong Pester version loaded.'
