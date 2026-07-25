@@ -32,13 +32,13 @@ jobs:
         run: dotnet test CodexUsageBar.sln --configuration Release --no-build --verbosity minimal
 
       - name: Install Pester
-        shell: pwsh
-        run: Install-Module Pester -MinimumVersion 5.5.0 -Force -Scope CurrentUser
+        shell: powershell
+        run: Install-Module Pester -RequiredVersion 4.10.1 -Force -Scope CurrentUser
 
       - name: Test release helpers
-        shell: pwsh
+        shell: powershell
         run: Invoke-Pester -Path '.\\tests\\PublishSupport.Tests.ps1'
 
       - name: Test release workflow
-        shell: pwsh
+        shell: powershell
         run: Invoke-Pester -Path '.\\tests\\PublishScript.Tests.ps1'
