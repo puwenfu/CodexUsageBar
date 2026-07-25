@@ -5,14 +5,15 @@ public sealed class SingleInstanceGuardTests
     [Fact]
     public void TryAcquire_FailsWhileFirstGuardIsAlive_ThenSucceedsAfterDisposal()
     {
-        using var first = SingleInstanceGuard.TryAcquire("CodexUsageBar");
+        var applicationName = $"CodexUsageBar.Tests.Lifecycle.{Guid.NewGuid():N}";
+        using var first = SingleInstanceGuard.TryAcquire(applicationName);
 
         Assert.NotNull(first);
-        Assert.Null(SingleInstanceGuard.TryAcquire("CodexUsageBar"));
+        Assert.Null(SingleInstanceGuard.TryAcquire(applicationName));
 
         first.Dispose();
 
-        using var afterDisposal = SingleInstanceGuard.TryAcquire("CodexUsageBar");
+        using var afterDisposal = SingleInstanceGuard.TryAcquire(applicationName);
         Assert.NotNull(afterDisposal);
     }
 

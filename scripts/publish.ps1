@@ -55,6 +55,7 @@ try {
         '--self-contained', 'true',
         '-p:PublishSingleFile=true',
         '-p:IncludeNativeLibrariesForSelfExtract=true',
+        '-p:EnableCompressionInSingleFile=true',
         "-p:Version=$version",
         "-p:FileVersion=$version.0",
         "-p:AssemblyVersion=$version.0",

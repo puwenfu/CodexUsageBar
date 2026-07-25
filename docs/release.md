@@ -1,5 +1,9 @@
 # Release process
 
+The public repository at `puwenfu/CodexUsageBar` is the authoritative source
+for release branches, tags, and GitHub Releases. Private archive remotes are
+backup-only and must never be used as the target of a public release.
+
 ## Version source
 
 `Directory.Build.props` is the authoritative version source. The release script

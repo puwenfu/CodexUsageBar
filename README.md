@@ -22,7 +22,7 @@ a live Windows Shell screenshot.
 
 ## Download and run
 
-Download `CodexUsageBar_1.2.1_win-x64.zip` from [GitHub Releases](https://github.com/qq4907334589-stack/CodexUsageBar/releases), extract it, and run `CodexUsageBar.exe`.
+Download the current Windows ZIP from [GitHub Releases](https://github.com/puwenfu/CodexUsageBar/releases/latest), extract it, and run `CodexUsageBar.exe`.
 
 The EXE is unsigned. Windows may show an unknown publisher warning or
 SmartScreen prompt before the first run. Review the release and checksum before
@@ -33,7 +33,7 @@ choosing whether to continue.
 Each release includes `SHA256SUMS.txt`. In PowerShell, calculate the ZIP hash:
 
 ```powershell
-Get-FileHash .\CodexUsageBar_1.2.1_win-x64.zip -Algorithm SHA256
+Get-FileHash .\CodexUsageBar_*_win-x64.zip -Algorithm SHA256
 ```
 
 Compare the displayed SHA-256 value with the ZIP entry in `SHA256SUMS.txt`.
