@@ -15,10 +15,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           global-json-file: global.json
 
@@ -69,3 +69,19 @@ jobs:
             throw 'Wrong Pester version loaded.'
           }
           Invoke-Pester -Path '.\\tests\\PublishScript.Tests.ps1' -EnableExit
+
+      - name: Build release candidate
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          .\scripts\publish.ps1
+
+      - name: Upload release candidate
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: CodexUsageBar-release-candidate
+          path: |
+            dist/*/*_win-x64.zip
+            dist/*/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 7

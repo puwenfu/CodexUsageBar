@@ -335,20 +335,23 @@ exit /b 0
 }
 
 Describe 'release documentation and local build contracts' {
-    It 'defines a Windows CI workflow for restore build dotnet tests and Pester' {
+    It 'defines a pinned Windows CI workflow through the final release candidate' {
         $workflowPath = Join-Path $sourceProjectRoot '.github/workflows/ci.yml'
         Test-Path -LiteralPath $workflowPath -PathType Leaf | Should Be $true
 
         $workflow = Get-Content -LiteralPath $workflowPath -Raw
         $workflow | Should Match 'windows-latest'
-        $workflow | Should Match 'actions/checkout@v4'
-        $workflow | Should Match 'actions/setup-dotnet@v4'
+        $workflow | Should Match 'actions/checkout@[0-9a-f]{40}\s+# v4'
+        $workflow | Should Match 'actions/setup-dotnet@[0-9a-f]{40}\s+# v4'
+        $workflow | Should Match 'actions/upload-artifact@[0-9a-f]{40}\s+# v4'
         $workflow | Should Match 'dotnet restore CodexUsageBar\.sln'
         $workflow | Should Match 'dotnet build CodexUsageBar\.sln --configuration Release --no-restore'
         $workflow | Should Match 'dotnet test CodexUsageBar\.sln --configuration Release --no-build'
         $workflow | Should Match 'PublishSupport\.Tests\.ps1'
         $workflow | Should Match 'PublishScript\.Tests\.ps1'
-        $workflow | Should Not Match 'publish\.ps1'
+        $workflow | Should Match 'Build release candidate'
+        $workflow | Should Match '\.\\scripts\\publish\.ps1'
+        $workflow | Should Match 'dist/\*/\*_win-x64\.zip'
     }
 
     It 'preserves the WPF assembly identity in the exact dotnet publish arguments' {
@@ -423,8 +426,8 @@ exit /b 37
 
         $readme = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'README.md') -Raw
         $readme | Should Match 'GitHub Releases'
-        $readme | Should Match 'CodexUsageBar_1\.2\.1_win-x64\.zip'
-        $readme | Should Match '(?m)^Get-FileHash \.\\CodexUsageBar_1\.2\.1_win-x64\.zip -Algorithm SHA256\s*$'
+        $readme | Should Match 'https://github\.com/puwenfu/CodexUsageBar/releases/latest'
+        $readme | Should Match '(?m)^Get-FileHash \.\\CodexUsageBar_\*_win-x64\.zip -Algorithm SHA256\s*$'
         $readme | Should Match 'dotnet restore CodexUsageBar\.sln'
         $readme | Should Match 'SHA256SUMS\.txt'
         $readme | Should Match '(?i)not affiliated with or endorsed by OpenAI'
@@ -434,15 +437,17 @@ exit /b 37
 
     It 'documents the parameterless release command and release contents' {
         $readme = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'README.md') -Raw
+        $publishScript = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'scripts/publish.ps1') -Raw
 
         $readme | Should Match '(?m)^powershell -ExecutionPolicy Bypass -File \.\\scripts\\publish\.ps1\s*$'
         $readme | Should Match '(?m)^powershell -ExecutionPolicy Bypass -File \.\\scripts\\publish\.ps1 -WhatIfValidation\s*$'
         $readme | Should Match '(?i)standalone EXE'
         $readme | Should Match '(?is)ZIP.*README\.md.*CHANGELOG\.md.*LICENSE.*THIRD-PARTY-NOTICES\.txt'
         $readme | Should Match 'SHA256SUMS\.txt'
+        $publishScript | Should Match '-p:EnableCompressionInSingleFile=true'
     }
 
-    It 'records 1.2.1 as the open-source feature release' {
+    It 'records 1.2.4 as the current maintenance release' {
         [xml]$props = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'Directory.Build.props') -Raw
         $changelog = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'CHANGELOG.md') -Raw
         $versionNodes = @($props.SelectNodes('//VersionPrefix'))
@@ -451,34 +456,28 @@ exit /b 37
             '(?m)^## \[(?!Unreleased\])([^\]]+)\]')
 
         $versionNodes.Count | Should Be 1
-        $versionNodes[0].InnerText | Should Be '1.2.1'
+        $versionNodes[0].InnerText | Should Be '1.2.4'
         $releasedHeadings.Count | Should BeGreaterThan 0
-        $releasedHeadings[0].Groups[1].Value | Should Be '1.2.1'
-        $changelog | Should Match '\[1\.2\.1\]\s+-\s+2026-07-26'
-        $changelog | Should Not Match '\[1\.2\.0\]'
-        $changelog | Should Match '(?i)menu'
-        $changelog | Should Match '(?i)five-hour'
-        $changelog | Should Match '(?i)preferences'
-        $changelog | Should Match '(?i)open source'
+        $releasedHeadings[0].Groups[1].Value | Should Be '1.2.4'
+        $changelog | Should Match '\[1\.2\.4\]\s+-\s+2026-07-26'
+        $changelog | Should Match '(?i)submenu'
+        $changelog | Should Match '(?i)icon'
+        $changelog | Should Match '(?i)compressed'
+        $changelog | Should Match '(?i)GitHub Actions'
     }
 
-    It 'keeps the 1.2.1 release notes accurate before a package is published' {
+    It 'keeps the 1.2.4 release notes aligned with the published package' {
         $changelog = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'CHANGELOG.md') -Raw
-        $releaseNotesPath = Join-Path $sourceProjectRoot 'docs/releases/1.2.1.md'
-        $obsoleteReleaseNotesPath = Join-Path $sourceProjectRoot 'docs/releases/1.2.0.md'
-        $obsoleteAcceptancePath = Join-Path $sourceProjectRoot 'docs/acceptance/2026-07-26-release-1.2.0.md'
+        $releaseNotesPath = Join-Path $sourceProjectRoot 'docs/releases/1.2.4.md'
 
         Test-Path -LiteralPath $releaseNotesPath -PathType Leaf | Should Be $true
-        Test-Path -LiteralPath $obsoleteReleaseNotesPath | Should Be $false
-        Test-Path -LiteralPath $obsoleteAcceptancePath | Should Be $false
         $releaseNotes = Get-Content -LiteralPath $releaseNotesPath -Raw
 
         $changelog | Should Match '(?i)Windows 11'
         $changelog | Should Match '(?i)\.NET 8'
-        $releaseNotes | Should Match '(?m)^# CodexUsageBar 1\.2\.1\s*$'
-        $releaseNotes | Should Match 'CodexUsageBar_1\.2\.1_win-x64\.zip'
-        $releaseNotes | Should Not Match '1\.2\.0'
-        $releaseNotes | Should Match 'BFB69880134C5FE76CB2CFE84F3967D15D922CD0B0547EFD72EC6F716D10D395'
+        $releaseNotes | Should Match '(?m)^# CodexUsageBar 1\.2\.4\s*$'
+        $releaseNotes | Should Match 'CodexUsageBar_1\.2\.4_win-x64\.zip'
+        $releaseNotes | Should Match '(?m)^`[A-F0-9]{64}`\s*$'
         $releaseNotes | Should Match '(?is)release ZIP.*SHA256SUMS\.txt.*authorized GitHub Release'
         $releaseNotes | Should Not Match '(?i)not available yet|after an authorized package build'
         $releaseNotes | Should Match '(?i)Windows 11'

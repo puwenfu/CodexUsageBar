@@ -58,7 +58,7 @@ public sealed class ContextMenuThemeTests
     });
 
     [Fact]
-    public void SubmenuPopup_UsesNativeRightPlacementForWorkAreaFallback() => StaTest.Run(() =>
+    public void SubmenuPopup_PrefersRightIndependentlyOfSystemMenuAlignment() => StaTest.Run(() =>
     {
         Application.ResourceAssembly ??= typeof(WidgetWindow).Assembly;
         var resources = new ResourceDictionary
@@ -76,11 +76,30 @@ public sealed class ContextMenuThemeTests
 
         item.ApplyTemplate();
 
-        var popup = Assert.IsAssignableFrom<Popup>(item.Template.FindName("SubmenuPopup", item));
-        Assert.Equal(PlacementMode.Right, popup.Placement);
+        var popup = Assert.IsType<RightPreferredPopup>(
+            item.Template.FindName("PART_Popup", item));
+        Assert.Equal(PlacementMode.Custom, popup.Placement);
         Assert.Same(item, popup.PlacementTarget);
         Assert.True(popup.StaysOpen);
-        Assert.Null(popup.CustomPopupPlacementCallback);
+        var callback = Assert.IsType<CustomPopupPlacementCallback>(
+            popup.CustomPopupPlacementCallback);
+        var placements = callback(
+            new Size(120, 96),
+            new Size(180, 32),
+            new Point());
+
+        Assert.Collection(
+            placements,
+            right =>
+            {
+                Assert.Equal(new Point(180, 0), right.Point);
+                Assert.Equal(PopupPrimaryAxis.Vertical, right.PrimaryAxis);
+            },
+            left =>
+            {
+                Assert.Equal(new Point(-120, 0), left.Point);
+                Assert.Equal(PopupPrimaryAxis.Vertical, left.PrimaryAxis);
+            });
     });
 
     [Fact]
@@ -227,11 +246,15 @@ public sealed class ContextMenuThemeTests
         Assert.Contains(
             style.Setters.OfType<Setter>(),
             setter => setter.Property == FrameworkElement.WidthProperty &&
-                      Equals(setter.Value, 14d));
+                      Equals(setter.Value, 11.2d));
+        Assert.Contains(
+            style.Setters.OfType<Setter>(),
+            setter => setter.Property == FrameworkElement.HeightProperty &&
+                      Equals(setter.Value, 11.2d));
         Assert.Contains(
             style.Setters.OfType<Setter>(),
             setter => setter.Property == Shape.StrokeThicknessProperty &&
-                      Equals(setter.Value, 1.35d));
+                      Equals(setter.Value, 1.08d));
         Assert.IsType<Binding>(
             style.Setters
                 .OfType<Setter>()

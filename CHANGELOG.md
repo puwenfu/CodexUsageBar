@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.4] - 2026-07-26
+### Changed
+- Reduced menu icon size to 80% while preserving menu item hit targets and alignment.
+- Compressed the self-contained single-file executable to reduce extracted disk usage.
+- Pinned GitHub Actions to reviewed commit SHAs and added final release-candidate packaging to CI.
+- Restricted local SDK roll-forward to the latest .NET 8 feature band and added weekly dependency checks.
+
+### Fixed
+- Restored the standard WPF submenu popup contract and right-first placement so nested menus use native menu capture and close behavior.
+- Corrected public download and private vulnerability-reporting links after the repository transfer.
+- Isolated singleton tests from a running CodexUsageBar instance.
+
 ## [1.2.1] - 2026-07-26
 ### Added
 - Added a compact taskbar menu with consistent icons, an About panel, and clearer access to refresh, startup, themes, debug tools, and exit.

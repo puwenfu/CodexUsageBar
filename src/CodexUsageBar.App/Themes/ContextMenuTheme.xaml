@@ -35,13 +35,13 @@
     <Geometry x:Key="MenuExitIcon">M7,1 V6 M3.5,3.5 A5,5 0 1 0 10.5,3.5</Geometry>
 
     <Style x:Key="CodexMenuIconStyle" TargetType="{x:Type Path}">
-        <Setter Property="Width" Value="14" />
-        <Setter Property="Height" Value="14" />
+        <Setter Property="Width" Value="11.2" />
+        <Setter Property="Height" Value="11.2" />
         <Setter Property="Stretch" Value="Uniform" />
         <Setter Property="Stroke"
                 Value="{Binding Path=(controls:MenuChrome.IconBrush),
                                 RelativeSource={RelativeSource Self}}" />
-        <Setter Property="StrokeThickness" Value="1.35" />
+        <Setter Property="StrokeThickness" Value="1.08" />
         <Setter Property="StrokeStartLineCap" Value="Round" />
         <Setter Property="StrokeEndLineCap" Value="Round" />
         <Setter Property="StrokeLineJoin" Value="Round" />
@@ -182,7 +182,7 @@
                             </Grid>
                         </Border>
 
-                        <controls:RightPreferredPopup x:Name="SubmenuPopup"
+                        <controls:RightPreferredPopup x:Name="PART_Popup"
                                                       PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
                                                       IsOpen="{TemplateBinding IsSubmenuOpen}"
                                                       AllowsTransparency="True"
