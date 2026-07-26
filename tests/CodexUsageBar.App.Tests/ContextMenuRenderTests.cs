@@ -13,7 +13,7 @@ public sealed class ContextMenuRenderTests
     [InlineData(96)]
     [InlineData(144)]
     [InlineData(192)]
-    public void MenuTemplate_RendersThemeCircleAndToggleStatusAtTargetDpi(int dpi) => StaTest.Run(() =>
+    public void MenuTemplate_RendersThemeCircleAndCompactToggleAtTargetDpi(int dpi) => StaTest.Run(() =>
     {
         Application.ResourceAssembly ??= typeof(WidgetWindow).Assembly;
         var resources = new ResourceDictionary
@@ -39,9 +39,19 @@ public sealed class ContextMenuRenderTests
             Icon = CreateLineIcon(Assert.IsAssignableFrom<Geometry>(resources["MenuStartupIcon"])),
         };
         menu.Items.Add(toggleItem);
+        var uncheckedToggleItem = new MenuItem
+        {
+            Header = "隐藏 5 小时",
+            Tag = "Toggle",
+            IsCheckable = true,
+            IsChecked = false,
+            Style = itemStyle,
+            Icon = CreateLineIcon(Assert.IsAssignableFrom<Geometry>(resources["MenuHideIcon"])),
+        };
+        menu.Items.Add(uncheckedToggleItem);
         menu.Items.Add(new MenuItem
         {
-            Header = "星海蓝",
+            Header = "沧海星澜",
             Tag = "Theme",
             IsCheckable = true,
             IsChecked = true,
@@ -54,10 +64,24 @@ public sealed class ContextMenuRenderTests
         {
             item.ApplyTemplate();
         }
-        var statusDot = Assert.IsType<Ellipse>(
-            toggleItem.Template.FindName("StatusDot", toggleItem));
-        Assert.Equal(Visibility.Visible, statusDot.Visibility);
-        Assert.NotNull(statusDot.Fill);
+        var checkedTrack = Assert.IsType<Border>(
+            toggleItem.Template.FindName("ToggleSwitch", toggleItem));
+        var checkedThumb = Assert.IsType<Ellipse>(
+            toggleItem.Template.FindName("ToggleThumb", toggleItem));
+        Assert.Equal(Visibility.Visible, checkedTrack.Visibility);
+        Assert.Equal(23.8d, checkedTrack.Width);
+        Assert.Equal(13.6d, checkedTrack.Height);
+        Assert.Equal(Color.FromRgb(0xA8, 0xFF, 0x7A), AssertSolidColor(checkedTrack.Background));
+        Assert.Equal(HorizontalAlignment.Right, checkedThumb.HorizontalAlignment);
+        Assert.Equal(10d, checkedThumb.Width);
+
+        var uncheckedTrack = Assert.IsType<Border>(
+            uncheckedToggleItem.Template.FindName("ToggleSwitch", uncheckedToggleItem));
+        var uncheckedThumb = Assert.IsType<Ellipse>(
+            uncheckedToggleItem.Template.FindName("ToggleThumb", uncheckedToggleItem));
+        Assert.Equal(Visibility.Visible, uncheckedTrack.Visibility);
+        Assert.Equal(Color.FromRgb(0x30, 0x30, 0x36), AssertSolidColor(uncheckedTrack.Background));
+        Assert.Equal(HorizontalAlignment.Left, uncheckedThumb.HorizontalAlignment);
 
         menu.Measure(new Size(240, double.PositiveInfinity));
         menu.Arrange(new Rect(menu.DesiredSize));
@@ -67,8 +91,12 @@ public sealed class ContextMenuRenderTests
         Assert.True(bitmap.PixelWidth > 0);
         Assert.True(bitmap.PixelHeight > 0);
         Assert.True(CountBlueThemePixels(bitmap) > 0);
+        Assert.True(CountGreenTogglePixels(bitmap) > 0);
         AssertCornersAreSofterThanCenter(bitmap);
     });
+
+    private static Color AssertSolidColor(Brush brush) =>
+        Assert.IsType<SolidColorBrush>(brush).Color;
 
     private static Path CreateLineIcon(Geometry data) => new()
     {
@@ -103,6 +131,10 @@ public sealed class ContextMenuRenderTests
     private static int CountBlueThemePixels(RenderTargetBitmap bitmap) =>
         CountPixels(bitmap, (blue, green, red, alpha) =>
             alpha > 0 && blue > 180 && blue > red + 15 && blue > green + 10);
+
+    private static int CountGreenTogglePixels(RenderTargetBitmap bitmap) =>
+        CountPixels(bitmap, (blue, green, red, alpha) =>
+            alpha > 0 && green > 240 && red > 150 && blue < 150);
 
     private static int CountPixels(
         RenderTargetBitmap bitmap,

@@ -6,13 +6,13 @@
     <SolidColorBrush x:Key="QuotaPrimaryTextBrush" Color="#F8F7FC" />
     <SolidColorBrush x:Key="QuotaSecondaryTextBrush" Color="#A9A4B2" />
     <LinearGradientBrush x:Key="QuotaProgressBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Offset="0" Color="#EBFFCD" />
-        <GradientStop Offset="0.52" Color="#54E3CA" />
-        <GradientStop Offset="1" Color="#677FE4" />
+        <GradientStop Offset="0" Color="#FF758A" />
+        <GradientStop Offset="0.52" Color="#FF657A" />
+        <GradientStop Offset="1" Color="#FF4588" />
     </LinearGradientBrush>
     <LinearGradientBrush x:Key="QuotaRefreshHighlightBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Offset="0" Color="#F7FFE9" />
-        <GradientStop Offset="0.52" Color="#8CF4E1" />
-        <GradientStop Offset="1" Color="#9CABFF" />
+        <GradientStop Offset="0" Color="#FFB6C2" />
+        <GradientStop Offset="0.52" Color="#FFA0AF" />
+        <GradientStop Offset="1" Color="#FF8AAE" />
     </LinearGradientBrush>
 </ResourceDictionary>

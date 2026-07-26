@@ -7,12 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.5] - 2026-07-26
+### Added
+- Added three persistent refresh animation styles and a rose meter theme.
+
 ### Changed
 - Refreshed the repository overview with build, release, download, platform, and license status.
 - Updated pinned GitHub Actions to their Node.js 24-backed stable releases.
+- Refined menu icons, labels, and compact switches, and made the debug panel narrower.
+- Made refresh feedback theme-aware with a smooth exit transition at 100%, 150%, and 200% scaling.
 
 ### Fixed
 - Replaced the stale hard-coded app-server client version with the current CodexUsageBar product version.
+- Kept nested menus right-first with native popup capture and a two-physical-pixel visual gap across DPI levels.
+- Kept the context menu and debug panel clear of the taskbar while opening the debug panel beside the menu.
+- Blocked release validation when the version source and changelog disagree, while retaining the v1.2.4 compressed archive and legal-file contract.
 
 ## [1.2.4] - 2026-07-26
 ### Changed

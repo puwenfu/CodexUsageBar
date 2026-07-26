@@ -52,7 +52,8 @@ Compare the displayed SHA-256 value with the ZIP entry in `SHA256SUMS.txt`.
 ## Usage
 
 Left-click the widget to refresh. Right-click it to refresh, change the meter
-theme, control the optional startup entry, open the debug panel, or exit.
+theme or refresh animation, control the optional startup entry, open the debug
+panel, or exit.
 Startup is disabled by default.
 
 ## Privacy
@@ -101,6 +102,10 @@ To validate release inputs without publishing:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\publish.ps1 -WhatIfValidation
 ```
+
+The version is maintained only in `Directory.Build.props`. Validation stops
+before building if that version does not match the newest released entry in
+`CHANGELOG.md`.
 
 The release ZIP contains the standalone EXE, `README.md`, `CHANGELOG.md`,
 `LICENSE`, and `THIRD-PARTY-NOTICES.txt`, with hashes in `SHA256SUMS.txt`. See

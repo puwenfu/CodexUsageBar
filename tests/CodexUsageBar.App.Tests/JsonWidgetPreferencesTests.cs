@@ -17,6 +17,47 @@ public sealed class JsonWidgetPreferencesTests : IDisposable
         var preferences = Create("settings.json");
 
         Assert.False(preferences.HideFiveHourQuota);
+        Assert.Equal(RefreshAnimationStyle.ProgressRing, preferences.RefreshAnimationStyle);
+    }
+
+    [Fact]
+    public void SetRefreshAnimationStyle_PersistsAcrossInstances()
+    {
+        var path = Path.Combine(_directory, "settings.json");
+        var first = new JsonWidgetPreferences(path, new RecordingLogger());
+
+        first.RefreshAnimationStyle = RefreshAnimationStyle.DotOrbit;
+        var second = new JsonWidgetPreferences(path, new RecordingLogger());
+
+        Assert.Equal(RefreshAnimationStyle.DotOrbit, second.RefreshAnimationStyle);
+        Assert.False(File.Exists(path + ".tmp"));
+    }
+
+    [Fact]
+    public void LegacyFile_DefaultsToProgressRing()
+    {
+        Directory.CreateDirectory(_directory);
+        var path = Path.Combine(_directory, "settings.json");
+        File.WriteAllText(path, """{"HideFiveHourQuota":true}""");
+
+        var preferences = new JsonWidgetPreferences(path, new RecordingLogger());
+
+        Assert.True(preferences.HideFiveHourQuota);
+        Assert.Equal(RefreshAnimationStyle.ProgressRing, preferences.RefreshAnimationStyle);
+    }
+
+    [Fact]
+    public void RemovedRefreshStyle_FallsBackToProgressRing()
+    {
+        Directory.CreateDirectory(_directory);
+        var path = Path.Combine(_directory, "settings.json");
+        File.WriteAllText(
+            path,
+            """{"HideFiveHourQuota":false,"RefreshAnimationStyle":"BreathingHalo"}""");
+
+        var preferences = new JsonWidgetPreferences(path, new RecordingLogger());
+
+        Assert.Equal(RefreshAnimationStyle.ProgressRing, preferences.RefreshAnimationStyle);
     }
 
     [Fact]
@@ -43,6 +84,7 @@ public sealed class JsonWidgetPreferencesTests : IDisposable
         var preferences = new JsonWidgetPreferences(path, logger);
 
         Assert.False(preferences.HideFiveHourQuota);
+        Assert.Equal(RefreshAnimationStyle.ProgressRing, preferences.RefreshAnimationStyle);
         Assert.Equal(["settings.read_failed"], logger.EventCodes);
     }
 

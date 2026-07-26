@@ -83,6 +83,59 @@ Describe 'Get-ProjectVersion' {
     }
 }
 
+Describe 'Assert-ChangelogVersion' {
+    It 'accepts the version from the first released changelog heading' {
+        $changelogPath = Join-Path $TestDrive 'CHANGELOG.md'
+        Set-Content -LiteralPath $changelogPath -Encoding UTF8 -Value @'
+# Changelog
+
+## [Unreleased]
+
+## [1.2.5] - 2026-07-26
+
+## [1.2.4] - 2026-07-26
+'@
+
+        {
+            Assert-ChangelogVersion `
+                -ChangelogPath $changelogPath `
+                -ExpectedVersion '1.2.5'
+        } | Should Not Throw
+    }
+
+    It 'rejects a version source newer than the first released changelog heading' {
+        $changelogPath = Join-Path $TestDrive 'CHANGELOG.md'
+        Set-Content -LiteralPath $changelogPath -Encoding UTF8 -Value @'
+# Changelog
+
+## [Unreleased]
+
+## [1.2.4] - 2026-07-26
+'@
+
+        {
+            Assert-ChangelogVersion `
+                -ChangelogPath $changelogPath `
+                -ExpectedVersion '1.2.5'
+        } | Should Throw 'Version source and changelog are out of sync'
+    }
+
+    It 'rejects a changelog without a released version heading' {
+        $changelogPath = Join-Path $TestDrive 'CHANGELOG.md'
+        Set-Content -LiteralPath $changelogPath -Encoding UTF8 -Value @'
+# Changelog
+
+## [Unreleased]
+'@
+
+        {
+            Assert-ChangelogVersion `
+                -ChangelogPath $changelogPath `
+                -ExpectedVersion '1.2.5'
+        } | Should Throw 'at least one released version'
+    }
+}
+
 Describe 'Assert-ExecutableVersion' {
     It 'rejects a real PE without version resources' {
         $executable = Join-Path $TestDrive 'versionless.exe'

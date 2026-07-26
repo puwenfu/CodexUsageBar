@@ -9,6 +9,7 @@ internal sealed class JsonWidgetPreferences : IWidgetPreferences
     private readonly string _settingsPath;
     private readonly IDiagnosticLogger _logger;
     private bool _hideFiveHourQuota;
+    private RefreshAnimationStyle _refreshAnimationStyle;
 
     public JsonWidgetPreferences(IDiagnosticLogger logger)
         : this(
@@ -25,7 +26,9 @@ internal sealed class JsonWidgetPreferences : IWidgetPreferences
         ArgumentException.ThrowIfNullOrWhiteSpace(settingsPath);
         _settingsPath = Path.GetFullPath(settingsPath);
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _hideFiveHourQuota = TryLoad();
+        var stored = TryLoad();
+        _hideFiveHourQuota = stored.HideFiveHourQuota;
+        _refreshAnimationStyle = stored.RefreshAnimationStyle;
     }
 
     public bool HideFiveHourQuota
@@ -43,23 +46,43 @@ internal sealed class JsonWidgetPreferences : IWidgetPreferences
         }
     }
 
-    private bool TryLoad()
+    public RefreshAnimationStyle RefreshAnimationStyle
+    {
+        get => _refreshAnimationStyle;
+        set
+        {
+            if (_refreshAnimationStyle == value || !Enum.IsDefined(value))
+            {
+                return;
+            }
+
+            _refreshAnimationStyle = value;
+            TrySave();
+        }
+    }
+
+    private LoadedPreferences TryLoad()
     {
         if (!File.Exists(_settingsPath))
         {
-            return false;
+            return LoadedPreferences.Default;
         }
 
         try
         {
             var json = File.ReadAllText(_settingsPath);
-            return JsonSerializer.Deserialize<StoredPreferences>(json)?.HideFiveHourQuota ?? false;
+            var stored = JsonSerializer.Deserialize<StoredPreferences>(json);
+            return stored is null
+                ? LoadedPreferences.Default
+                : new LoadedPreferences(
+                    stored.HideFiveHourQuota,
+                    ParseRefreshAnimationStyle(stored.RefreshAnimationStyle));
         }
         catch (Exception exception) when (
             exception is IOException or UnauthorizedAccessException or JsonException)
         {
             LogFailure("settings.read_failed", exception);
-            return false;
+            return LoadedPreferences.Default;
         }
     }
 
@@ -69,7 +92,10 @@ internal sealed class JsonWidgetPreferences : IWidgetPreferences
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(_settingsPath)!);
-            var json = JsonSerializer.Serialize(new StoredPreferences(_hideFiveHourQuota));
+            var json = JsonSerializer.Serialize(
+                new StoredPreferences(
+                    _hideFiveHourQuota,
+                    _refreshAnimationStyle.ToString()));
             File.WriteAllText(temporaryPath, json);
             File.Move(temporaryPath, _settingsPath, overwrite: true);
         }
@@ -98,5 +124,21 @@ internal sealed class JsonWidgetPreferences : IWidgetPreferences
         }
     }
 
-    private sealed record StoredPreferences(bool HideFiveHourQuota);
+    private static RefreshAnimationStyle ParseRefreshAnimationStyle(string? value) =>
+        Enum.TryParse<RefreshAnimationStyle>(value, ignoreCase: false, out var parsed)
+        && Enum.IsDefined(parsed)
+            ? parsed
+            : RefreshAnimationStyle.ProgressRing;
+
+    private sealed record StoredPreferences(
+        bool HideFiveHourQuota,
+        string? RefreshAnimationStyle = null);
+
+    private sealed record LoadedPreferences(
+        bool HideFiveHourQuota,
+        RefreshAnimationStyle RefreshAnimationStyle)
+    {
+        public static LoadedPreferences Default { get; } =
+            new(false, RefreshAnimationStyle.ProgressRing);
+    }
 }

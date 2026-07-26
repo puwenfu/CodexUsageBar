@@ -19,7 +19,13 @@ function New-PublishFixture {
 <Project><PropertyGroup><VersionPrefix>$Version</VersionPrefix></PropertyGroup></Project>
 "@
     Set-Content -LiteralPath (Join-Path $fixtureRoot 'README.md') -Encoding UTF8 -Value '# Fixture'
-    Set-Content -LiteralPath (Join-Path $fixtureRoot 'CHANGELOG.md') -Encoding UTF8 -Value '# Fixture'
+    Set-Content -LiteralPath (Join-Path $fixtureRoot 'CHANGELOG.md') -Encoding UTF8 -Value @"
+# Changelog
+
+## [Unreleased]
+
+## [$Version] - 2026-07-26
+"@
     Set-Content -LiteralPath (Join-Path $fixtureRoot 'LICENSE') -Encoding UTF8 -Value 'MIT fixture'
     Set-Content -LiteralPath (Join-Path $fixtureRoot 'THIRD-PARTY-NOTICES.txt') -Encoding UTF8 -Value 'Third-party fixture'
     Set-Content -LiteralPath (Join-Path $projectDirectory 'CodexUsageBar.App.csproj') -Encoding UTF8 -Value '<Project Sdk="Microsoft.NET.Sdk" />'
@@ -89,6 +95,23 @@ Describe 'publish.ps1' {
 
         $LASTEXITCODE | Should Not Be 0
         ($output | Out-String) | Should Match 'Required release input is missing'
+        Test-Path -LiteralPath $fixture.Release | Should Be $false
+    }
+
+    It 'rejects validation when the changelog version is behind the version source' {
+        $fixture = New-PublishFixture -Version '9.9.7'
+        Set-Content -LiteralPath (Join-Path $fixture.Root 'CHANGELOG.md') -Encoding UTF8 -Value @'
+# Changelog
+
+## [Unreleased]
+
+## [9.8.9] - 2026-07-26
+'@
+
+        $output = & powershell -NoProfile -ExecutionPolicy Bypass -File $fixture.Script -WhatIfValidation 2>&1
+
+        $LASTEXITCODE | Should Not Be 0
+        ($output | Out-String) | Should Match 'Version source and changelog are out of sync'
         Test-Path -LiteralPath $fixture.Release | Should Be $false
     }
 
@@ -447,7 +470,7 @@ exit /b 37
         $publishScript | Should Match '-p:EnableCompressionInSingleFile=true'
     }
 
-    It 'records 1.2.4 as the current maintenance release' {
+    It 'keeps the project version aligned with the latest changelog release' {
         [xml]$props = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'Directory.Build.props') -Raw
         $changelog = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'CHANGELOG.md') -Raw
         $versionNodes = @($props.SelectNodes('//VersionPrefix'))
@@ -456,13 +479,14 @@ exit /b 37
             '(?m)^## \[(?!Unreleased\])([^\]]+)\]')
 
         $versionNodes.Count | Should Be 1
-        $versionNodes[0].InnerText | Should Be '1.2.4'
+        $versionNodes[0].InnerText | Should Be '1.2.5'
         $releasedHeadings.Count | Should BeGreaterThan 0
-        $releasedHeadings[0].Groups[1].Value | Should Be '1.2.4'
-        $changelog | Should Match '\[1\.2\.4\]\s+-\s+2026-07-26'
-        $changelog | Should Match '(?i)submenu'
-        $changelog | Should Match '(?i)icon'
-        $changelog | Should Match '(?i)compressed'
+        $releasedHeadings[0].Groups[1].Value |
+            Should BeExactly $versionNodes[0].InnerText
+        $changelog | Should Match '\[1\.2\.5\]\s+-\s+2026-07-26'
+        $changelog | Should Match '(?i)refresh animation'
+        $changelog | Should Match '(?i)nested menus'
+        $changelog | Should Match '(?i)debug panel'
         $changelog | Should Match '(?i)GitHub Actions'
     }
 
