@@ -61,7 +61,7 @@ public sealed class QuotaMeterRefreshAnimationTests
     });
 
     [Fact]
-    public void ProgressRingStyle_ExitRestoresStaticArcBeforeOverlayFades() => StaTest.Run(() =>
+    public void ProgressRingStyle_ExitCrossfadesStaticArcWhileOverlayContinues() => StaTest.Run(() =>
     {
         var meter = new QuotaMeter
         {
@@ -74,6 +74,7 @@ public sealed class QuotaMeterRefreshAnimationTests
         meter.IsRefreshing = false;
 
         Assert.Equal(Visibility.Visible, meter.Arc.Visibility);
+        Assert.True(meter.Arc.HasAnimatedProperties);
         Assert.True(meter.RefreshArc.HasAnimatedProperties);
         Assert.True(meter.RefreshArcRotation.HasAnimatedProperties);
     });
@@ -147,6 +148,7 @@ public sealed class QuotaMeterRefreshAnimationTests
             meter.IsRefreshing = false;
             PumpDispatcherFor(TimeSpan.FromMilliseconds(240));
 
+            Assert.False(meter.Arc.HasAnimatedProperties);
             Assert.False(meter.RefreshArcRotation.HasAnimatedProperties);
             Assert.False(meter.RefreshArc.HasAnimatedProperties);
             Assert.False(meter.RefreshDotRotation.HasAnimatedProperties);

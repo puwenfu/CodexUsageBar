@@ -212,27 +212,40 @@ public partial class QuotaMeter : UserControl
         var refreshArcOpacity = RefreshArc.Opacity;
         var refreshDotOpacity = RefreshDotOrbit.Opacity;
         var haloOpacity = Halo.Opacity;
+        var staticArcOpacity = Arc.Opacity;
+        var shouldCrossfadeStaticArc = Arc.Visibility != Visibility.Visible;
         Arc.Visibility = Visibility.Visible;
-        var easing = new CubicEase { EasingMode = EasingMode.EaseIn };
+        if (shouldCrossfadeStaticArc)
+        {
+            Arc.BeginAnimation(
+                OpacityProperty,
+                new DoubleAnimation(0d, staticArcOpacity, ExitFadeDuration)
+                {
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
+                    FillBehavior = FillBehavior.Stop,
+                });
+        }
+
+        var exitEasing = new CubicEase { EasingMode = EasingMode.EaseIn };
         RefreshArc.BeginAnimation(
             OpacityProperty,
             new DoubleAnimation(refreshArcOpacity, 0d, ExitFadeDuration)
             {
-                EasingFunction = easing,
+                EasingFunction = exitEasing,
                 FillBehavior = FillBehavior.HoldEnd,
             });
         RefreshDotOrbit.BeginAnimation(
             OpacityProperty,
             new DoubleAnimation(refreshDotOpacity, 0d, ExitFadeDuration)
             {
-                EasingFunction = easing,
+                EasingFunction = exitEasing,
                 FillBehavior = FillBehavior.HoldEnd,
             });
         Halo.BeginAnimation(
             OpacityProperty,
             new DoubleAnimation(haloOpacity, 0d, ExitFadeDuration)
             {
-                EasingFunction = easing,
+                EasingFunction = exitEasing,
                 FillBehavior = FillBehavior.HoldEnd,
             });
         _exitFadeTimer.Stop();
@@ -268,6 +281,7 @@ public partial class QuotaMeter : UserControl
         RefreshDotRotation.BeginAnimation(
             System.Windows.Media.RotateTransform.AngleProperty,
             null);
+        Arc.BeginAnimation(OpacityProperty, null);
         RefreshArc.BeginAnimation(OpacityProperty, null);
         RefreshDotOrbit.BeginAnimation(OpacityProperty, null);
         Halo.BeginAnimation(OpacityProperty, null);

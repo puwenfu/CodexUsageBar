@@ -20,6 +20,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/CodexUsageBar.App;component/Themes/SystemThemeDark.xaml" />
                 <ResourceDictionary Source="/CodexUsageBar.App;component/Themes/ContextMenuTheme.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
@@ -27,9 +28,13 @@
 
     <Grid x:Name="WidgetRoot"
           Background="{DynamicResource WidgetBackgroundBrush}"
-          ToolTip="{Binding Tooltip}"
           ClipToBounds="True"
           PreviewMouseLeftButtonDown="OnPreviewMouseLeftButtonDown">
+        <Grid.ToolTip>
+            <ToolTip x:Name="WidgetToolTip"
+                     Content="{Binding Tooltip}"
+                     Style="{StaticResource CodexToolTipStyle}" />
+        </Grid.ToolTip>
         <Grid.ContextMenu>
             <ContextMenu Style="{StaticResource CodexContextMenuStyle}"
                          Opened="OnContextMenuOpened">
@@ -53,95 +58,80 @@
                               Header="沧海星澜"
                               Tag="Theme"
                               IsCheckable="True"
+                              HeaderTemplate="{StaticResource ColorThemeHeaderTemplate}"
                               Padding="{StaticResource ContextSubmenuItemPadding}"
                               Style="{StaticResource CodexMenuItemStyle}"
                               Click="OnThemeBlueClick">
                         <MenuItem.Icon>
-                            <Ellipse Width="13" Height="13">
-                                <Ellipse.Fill>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Offset="0" Color="#8D9EFC" />
-                                        <GradientStop Offset="0.52" Color="#585EF6" />
-                                        <GradientStop Offset="1" Color="#4E4FF4" />
-                                    </LinearGradientBrush>
-                                </Ellipse.Fill>
-                            </Ellipse>
+                            <Ellipse Width="11.7"
+                                     Height="11.7"
+                                     Fill="{x:Null}"
+                                     Stroke="{StaticResource ThemeBluePreviewBrush}"
+                                     StrokeThickness="1.35" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem x:Name="ThemePurpleMenuItem"
                               Header="暮紫流烟"
                               Tag="Theme"
                               IsCheckable="True"
+                              HeaderTemplate="{StaticResource ColorThemeHeaderTemplate}"
                               Padding="{StaticResource ContextSubmenuItemPadding}"
                               Style="{StaticResource CodexMenuItemStyle}"
                               Click="OnThemePurpleClick">
                         <MenuItem.Icon>
-                            <Ellipse Width="13" Height="13">
-                                <Ellipse.Fill>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Offset="0" Color="#D4A7FF" />
-                                        <GradientStop Offset="0.52" Color="#9B6CFF" />
-                                        <GradientStop Offset="1" Color="#5B43FF" />
-                                    </LinearGradientBrush>
-                                </Ellipse.Fill>
-                            </Ellipse>
+                            <Ellipse Width="11.7"
+                                     Height="11.7"
+                                     Fill="{x:Null}"
+                                     Stroke="{StaticResource ThemePurplePreviewBrush}"
+                                     StrokeThickness="1.35" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem x:Name="ThemeRoseMenuItem"
                               Header="绯樱流霞"
                               Tag="Theme"
                               IsCheckable="True"
+                              HeaderTemplate="{StaticResource ColorThemeHeaderTemplate}"
                               Padding="{StaticResource ContextSubmenuItemPadding}"
                               Style="{StaticResource CodexMenuItemStyle}"
                               Click="OnThemeRoseClick">
                         <MenuItem.Icon>
-                            <Ellipse Width="13" Height="13">
-                                <Ellipse.Fill>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Offset="0" Color="#FF758A" />
-                                        <GradientStop Offset="0.52" Color="#FF657A" />
-                                        <GradientStop Offset="1" Color="#FF4588" />
-                                    </LinearGradientBrush>
-                                </Ellipse.Fill>
-                            </Ellipse>
+                            <Ellipse Width="11.7"
+                                     Height="11.7"
+                                     Fill="{x:Null}"
+                                     Stroke="{StaticResource ThemeRosePreviewBrush}"
+                                     StrokeThickness="1.35" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem x:Name="ThemeMintMenuItem"
                               Header="薄荷清露"
                               Tag="Theme"
                               IsCheckable="True"
+                              HeaderTemplate="{StaticResource ColorThemeHeaderTemplate}"
                               Padding="{StaticResource ContextSubmenuItemPadding}"
                               Style="{StaticResource CodexMenuItemStyle}"
                               Click="OnThemeMintClick">
                         <MenuItem.Icon>
-                            <Ellipse Width="13" Height="13">
-                                <Ellipse.Fill>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Offset="0" Color="#EBFFCD" />
-                                        <GradientStop Offset="0.52" Color="#54E3CA" />
-                                        <GradientStop Offset="1" Color="#677FE4" />
-                                    </LinearGradientBrush>
-                                </Ellipse.Fill>
-                            </Ellipse>
+                            <Ellipse Width="11.7"
+                                     Height="11.7"
+                                     Fill="{x:Null}"
+                                     Stroke="{StaticResource ThemeMintPreviewBrush}"
+                                     StrokeThickness="1.35" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem x:Name="ThemeForestMenuItem"
                               Header="苍林叠翠"
                               Tag="Theme"
                               IsCheckable="True"
+                              HeaderTemplate="{StaticResource ColorThemeHeaderTemplate}"
                               Padding="{StaticResource ContextSubmenuItemPadding}"
                               Style="{StaticResource CodexMenuItemStyle}"
                               Click="OnThemeForestClick">
                         <MenuItem.Icon>
-                            <Ellipse Width="13" Height="13">
-                                <Ellipse.Fill>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Offset="0" Color="#E0F8BA" />
-                                        <GradientStop Offset="0.52" Color="#D3E52D" />
-                                        <GradientStop Offset="1" Color="#0C6651" />
-                                    </LinearGradientBrush>
-                                </Ellipse.Fill>
-                            </Ellipse>
+                            <Ellipse Width="11.7"
+                                     Height="11.7"
+                                     Fill="{x:Null}"
+                                     Stroke="{StaticResource ThemeForestPreviewBrush}"
+                                     StrokeThickness="1.35" />
                         </MenuItem.Icon>
                     </MenuItem>
                 </MenuItem>
@@ -218,7 +208,7 @@
                         <MenuItem.Header>
                             <StackPanel Width="168">
                                 <TextBlock Text="Codex Usage Bar"
-                                           Foreground="{StaticResource ContextMenuPrimaryTextBrush}"
+                                           Foreground="{DynamicResource ContextMenuPrimaryTextBrush}"
                                            FontSize="13" />
                                 <TextBlock Margin="0,7,0,0"
                                            TextWrapping="Wrap">
@@ -228,9 +218,9 @@
                                 </TextBlock>
                                 <TextBlock x:Name="AboutVersionText"
                                            Margin="0,10"
-                                           Foreground="#D0D1D4" />
+                                           Foreground="{DynamicResource ContextMenuPrimaryTextBrush}" />
                                 <TextBlock Text="by Wenfu Pu"
-                                           Foreground="#85868B" />
+                                           Foreground="{DynamicResource ContextMenuMutedTextBrush}" />
                             </StackPanel>
                         </MenuItem.Header>
                     </MenuItem>

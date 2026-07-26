@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using CodexUsageBar.App.Services;
 using CodexUsageBar.App.ViewModels;
 
 namespace CodexUsageBar.App.Views;
@@ -8,10 +9,21 @@ namespace CodexUsageBar.App.Views;
 public partial class DebugWindow : Window
 {
     public DebugWindow(DebugViewModel viewModel)
+        : this(viewModel, SystemTheme.Dark)
+    {
+    }
+
+    internal DebugWindow(
+        DebugViewModel viewModel,
+        SystemTheme systemTheme)
     {
         InitializeComponent();
+        ApplySystemTheme(systemTheme);
         DataContext = viewModel;
     }
+
+    internal void ApplySystemTheme(SystemTheme theme) =>
+        SystemThemeResources.Replace(Resources, theme);
 
     internal void PositionRightOf(FrameworkElement anchor)
     {

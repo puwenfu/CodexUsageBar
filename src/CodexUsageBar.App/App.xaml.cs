@@ -56,6 +56,9 @@ public partial class App : Application
             var client = startupResources.Own<ICodexQuotaClient>(new CodexQuotaClient());
             logger = startupResources.Own(new DiagnosticLogger(clock));
             var preferences = new JsonWidgetPreferences(logger);
+            var systemThemeWatcher = startupResources.Own<ISystemThemeWatcher>(
+                new WindowsSystemThemeWatcher());
+            SystemThemeResources.Replace(Resources, systemThemeWatcher.CurrentTheme);
             var debugViewModel = new DebugViewModel();
             var coordinator = startupResources.Own(
                 new RefreshCoordinator(client, presentation, clock, logger, debugViewModel));
@@ -86,7 +89,9 @@ public partial class App : Application
                 startupRegistration,
                 preferences,
                 RequestExit,
-                debugViewModel);
+                debugViewModel,
+                systemThemeWatcher);
+            startupResources.Forget(systemThemeWatcher);
             startupResources.Own(new DelegateDisposable(window.Close));
 
             var host = startupResources.Own(new TaskbarWindowHost());
