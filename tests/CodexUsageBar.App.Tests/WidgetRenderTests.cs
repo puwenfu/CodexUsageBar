@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using CodexUsageBar.App.Controls;
 using CodexUsageBar.App.ViewModels;
 using CodexUsageBar.Core.Presentation;
@@ -123,6 +124,48 @@ public sealed class WidgetRenderTests
             AssertRightEdgePixelGap(
                 bitmap,
                 [GetBoundsInWindow(visibleResetTexts[0], window)]);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [Theory]
+    [InlineData("ocean-blue", "QuotaTheme.xaml")]
+    [InlineData("twilight-purple", "QuotaThemePurple.xaml")]
+    [InlineData("rose-glow", "QuotaThemeRose.xaml")]
+    [InlineData("mint-dew", "QuotaThemeMint.xaml")]
+    [InlineData("forest-green", "QuotaThemeForest.xaml")]
+    public void ThemeGallery_RendersCurrentRemainingTimeFormat(
+        string slug,
+        string themeFile) => StaTest.Run(() =>
+    {
+        const int dpi = 144;
+        var window = CreateWindow(
+            percent: 69,
+            dpi,
+            widthDip: 168,
+            fiveHourReset: "1h 20m",
+            weeklyReset: "6d 5h 35m",
+            themeFile);
+
+        try
+        {
+            ShowOffscreen(window);
+
+            var resetTexts = FindVisualChildren<TextBlock>(window)
+                .Where(text => Equals(text.Tag, "ResetTime"))
+                .ToArray();
+            Assert.Equal(2, resetTexts.Length);
+            Assert.Equal("1h 20m", NormalizeLineBreak(resetTexts[0].Text));
+            Assert.Equal("6d 5h 35m", NormalizeLineBreak(resetTexts[1].Text));
+            Assert.All(
+                FindVisualChildren<TextBlock>(window),
+                text => Assert.False(IsTextClipped(text), $"Clipped text: {text.Text}"));
+
+            var bitmap = Render(window, dpi);
+            SaveThemePreview(bitmap, slug);
         }
         finally
         {
@@ -257,7 +300,8 @@ public sealed class WidgetRenderTests
         int dpi,
         double widthDip = 168,
         string fiveHourReset = "00:35",
-        string weeklyReset = "周五 18:20")
+        string weeklyReset = "周五 18:20",
+        string themeFile = "QuotaTheme.xaml")
     {
         var display = new WidgetDisplayModel(
             new QuotaDisplayWindow($"{percent}%", "5h", fiveHourReset, 1),
@@ -277,7 +321,7 @@ public sealed class WidgetRenderTests
         window.Resources.MergedDictionaries.Add(new ResourceDictionary
         {
             Source = new Uri(
-                "/CodexUsageBar.App;component/Themes/QuotaTheme.xaml",
+                $"/CodexUsageBar.App;component/Themes/{themeFile}",
                 UriKind.Relative),
         });
         return window;
@@ -300,6 +344,7 @@ public sealed class WidgetRenderTests
         window.ShowActivated = false;
         window.Show();
         window.UpdateLayout();
+        window.Dispatcher.Invoke(() => { }, DispatcherPriority.Render);
     }
 
     private static RenderTargetBitmap Render(Window window, int dpi)
@@ -331,6 +376,18 @@ public sealed class WidgetRenderTests
         var directory = Path.Combine(root, "artifacts", "visual");
         Directory.CreateDirectory(directory);
         var path = Path.Combine(directory, $"widget-{scenario}-{widthDip:0}dip-{dpi}dpi.png");
+        using var stream = File.Create(path);
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(bitmap));
+        encoder.Save(stream);
+    }
+
+    private static void SaveThemePreview(BitmapSource bitmap, string slug)
+    {
+        var root = FindRepositoryRoot();
+        var directory = Path.Combine(root, "artifacts", "visual");
+        Directory.CreateDirectory(directory);
+        var path = Path.Combine(directory, $"widget-theme-{slug}-144dpi.png");
         using var stream = File.Create(path);
         var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(bitmap));

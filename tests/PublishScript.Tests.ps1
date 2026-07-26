@@ -434,6 +434,7 @@ exit /b 37
 
     It 'keeps the open-source entry documents complete and executable' {
         $requiredFiles = @(
+            'README.en.md',
             'LICENSE',
             'THIRD-PARTY-NOTICES.txt',
             'CONTRIBUTING.md',
@@ -453,26 +454,51 @@ exit /b 37
                 Should Be $true
         }
 
-        $readme = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'README.md') -Raw
-        $readme | Should Match 'GitHub Releases'
-        $readme | Should Match 'https://github\.com/puwenfu/CodexUsageBar/releases/latest'
-        $readme | Should Match '(?m)^Get-FileHash \.\\CodexUsageBar_\*_win-x64\.zip -Algorithm SHA256\s*$'
-        $readme | Should Match 'dotnet restore CodexUsageBar\.sln'
-        $readme | Should Match 'SHA256SUMS\.txt'
-        $readme | Should Match '(?i)not affiliated with or endorsed by OpenAI'
-        $readme | Should Match '(?i)unsigned'
-        $readme | Should Match '(?is)deterministic WPF rendering at 150% DPI with sample values.*not\s+a live Windows Shell screenshot'
+        $previewFiles = @(
+            'assets/codex-usage-bar-taskbar.png',
+            'assets/codex-usage-bar-taskbar-purple.png',
+            'assets/codex-usage-bar-taskbar-rose.png',
+            'assets/codex-usage-bar-taskbar-mint.png',
+            'assets/codex-usage-bar-taskbar-forest.png'
+        )
+
+        $readmeZh = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'README.md') -Raw
+        $readmeEn = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'README.en.md') -Raw
+        $readmeZh | Should Match '<strong>中文</strong>.*README\.en\.md.*English'
+        $readmeEn | Should Match 'README\.md.*中文.*<strong>English</strong>'
+
+        foreach ($relativePath in $previewFiles) {
+            Test-Path -LiteralPath (Join-Path $sourceProjectRoot $relativePath) -PathType Leaf |
+                Should Be $true
+            $readmeZh | Should Match ([regex]::Escape($relativePath))
+            $readmeEn | Should Match ([regex]::Escape($relativePath))
+        }
+
+        $readmeEn | Should Match 'GitHub Releases'
+        $readmeEn | Should Match 'https://github\.com/puwenfu/CodexUsageBar/releases/latest'
+        $readmeEn | Should Match '(?m)^Get-FileHash \.\\CodexUsageBar_\*_win-x64\.zip -Algorithm SHA256\s*$'
+        $readmeEn | Should Match 'dotnet restore CodexUsageBar\.sln'
+        $readmeEn | Should Match 'SHA256SUMS\.txt'
+        $readmeEn | Should Match '(?i)not affiliated with or endorsed by OpenAI'
+        $readmeEn | Should Match '(?i)unsigned'
+        $readmeEn | Should Match '(?is)deterministic renders of the real WPF widget at 150% DPI with\s+sample values.*not live Windows Shell screenshots'
+        $readmeEn | Should Match '6d 5h 35m'
+        $readmeZh | Should Match '6d 5h 35m'
     }
 
     It 'documents the parameterless release command and release contents' {
-        $readme = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'README.md') -Raw
+        $readmeZh = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'README.md') -Raw
+        $readmeEn = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'README.en.md') -Raw
         $publishScript = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'scripts/publish.ps1') -Raw
 
-        $readme | Should Match '(?m)^powershell -ExecutionPolicy Bypass -File \.\\scripts\\publish\.ps1\s*$'
-        $readme | Should Match '(?m)^powershell -ExecutionPolicy Bypass -File \.\\scripts\\publish\.ps1 -WhatIfValidation\s*$'
-        $readme | Should Match '(?i)standalone EXE'
-        $readme | Should Match '(?is)ZIP.*README\.md.*CHANGELOG\.md.*LICENSE.*THIRD-PARTY-NOTICES\.txt'
-        $readme | Should Match 'SHA256SUMS\.txt'
+        foreach ($readme in @($readmeZh, $readmeEn)) {
+            $readme | Should Match '(?m)^powershell -ExecutionPolicy Bypass -File \.\\scripts\\publish\.ps1\s*$'
+            $readme | Should Match '(?m)^powershell -ExecutionPolicy Bypass -File \.\\scripts\\publish\.ps1 -WhatIfValidation\s*$'
+            $readme | Should Match '(?is)ZIP.*README\.md.*CHANGELOG\.md.*LICENSE.*THIRD-PARTY-NOTICES\.txt'
+            $readme | Should Match 'SHA256SUMS\.txt'
+        }
+
+        $readmeEn | Should Match '(?i)standalone EXE'
         $publishScript | Should Match '-p:EnableCompressionInSingleFile=true'
     }
 
