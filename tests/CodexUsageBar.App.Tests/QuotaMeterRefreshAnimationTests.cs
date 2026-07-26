@@ -30,6 +30,20 @@ public sealed class QuotaMeterRefreshAnimationTests
     });
 
     [Fact]
+    public void ExplicitAnimationPolicy_IsReusedAcrossRefreshStateChanges() => StaTest.Run(() =>
+    {
+        var animationsEnabled = !SystemParameters.ClientAreaAnimation;
+        var meter = new QuotaMeter();
+
+        meter.ApplyRefreshVisualState(animationsEnabled);
+        meter.IsRefreshing = true;
+
+        Assert.Equal(
+            animationsEnabled,
+            meter.RefreshArcRotation.HasAnimatedProperties);
+    });
+
+    [Fact]
     public void ProgressRingStyle_RotatesQuotaArcCopyWhileStaticArcIsHidden() => StaTest.Run(() =>
     {
         var meter = new QuotaMeter

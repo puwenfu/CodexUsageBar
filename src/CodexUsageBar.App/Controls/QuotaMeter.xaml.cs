@@ -13,6 +13,7 @@ public partial class QuotaMeter : UserControl
     private static readonly Duration ExitFadeDuration = new(TimeSpan.FromMilliseconds(180));
     private const double ActiveRefreshHighlightOpacity = 1d;
     private readonly DispatcherTimer _exitFadeTimer;
+    private bool _animationsEnabled = SystemParameters.ClientAreaAnimation;
 
     public static readonly DependencyProperty RingDiameterProperty = DependencyProperty.Register(
         nameof(RingDiameter),
@@ -76,12 +77,12 @@ public partial class QuotaMeter : UserControl
     private static void OnIsRefreshingChanged(
         DependencyObject dependencyObject,
         DependencyPropertyChangedEventArgs eventArgs) =>
-        ((QuotaMeter)dependencyObject).ApplyRefreshVisualState(SystemParameters.ClientAreaAnimation);
+        ((QuotaMeter)dependencyObject).ApplyRefreshVisualState();
 
     private static void OnRefreshAnimationStyleChanged(
         DependencyObject dependencyObject,
         DependencyPropertyChangedEventArgs eventArgs) =>
-        ((QuotaMeter)dependencyObject).ApplyRefreshVisualState(SystemParameters.ClientAreaAnimation);
+        ((QuotaMeter)dependencyObject).ApplyRefreshVisualState();
 
     private void ApplyDiameter(double diameter)
     {
@@ -119,13 +120,19 @@ public partial class QuotaMeter : UserControl
 
     internal void ApplyRefreshVisualState(bool animationsEnabled)
     {
+        _animationsEnabled = animationsEnabled;
+        ApplyRefreshVisualState();
+    }
+
+    private void ApplyRefreshVisualState()
+    {
         if (IsRefreshing)
         {
-            StartRefreshVisuals(animationsEnabled);
+            StartRefreshVisuals(_animationsEnabled);
             return;
         }
 
-        StopRefreshVisuals(animationsEnabled);
+        StopRefreshVisuals(_animationsEnabled);
     }
 
     private void StartRefreshVisuals(bool animationsEnabled)
