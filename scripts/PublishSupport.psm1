@@ -30,6 +30,39 @@ function Get-ProjectVersion {
     return $value
 }
 
+function Assert-ChangelogVersion {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ChangelogPath,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ExpectedVersion
+    )
+
+    if (-not (Test-Path -LiteralPath $ChangelogPath -PathType Leaf)) {
+        throw "Changelog is missing: $ChangelogPath"
+    }
+
+    $content = Get-Content -LiteralPath $ChangelogPath -Raw -Encoding UTF8
+    $releasedHeadings = [regex]::Matches(
+        $content,
+        '(?m)^## \[(?!Unreleased\])(?<Version>\d+\.\d+\.\d+)\](?:\s+-\s+\d{4}-\d{2}-\d{2})?\s*$'
+    )
+
+    if ($releasedHeadings.Count -eq 0) {
+        throw "Changelog must contain at least one released version: $ChangelogPath"
+    }
+
+    $latestDocumentedVersion = $releasedHeadings[0].Groups['Version'].Value
+    if ($latestDocumentedVersion -cne $ExpectedVersion) {
+        throw (
+            "Version source and changelog are out of sync. " +
+            "Expected latest changelog version $ExpectedVersion; found $latestDocumentedVersion."
+        )
+    }
+}
+
 function Assert-ExecutableVersion {
     [CmdletBinding()]
     param(
@@ -175,6 +208,7 @@ function Write-ChecksumManifest {
 
 Export-ModuleMember -Function @(
     'Get-ProjectVersion',
+    'Assert-ChangelogVersion',
     'Assert-ExecutableVersion',
     'Assert-RequiredReleaseInputs',
     'Assert-PublishOutput',

@@ -10,4 +10,9 @@
         <GradientStop Offset="0.52" Color="#585EF6" />
         <GradientStop Offset="1" Color="#4E4FF4" />
     </LinearGradientBrush>
+    <LinearGradientBrush x:Key="QuotaRefreshHighlightBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="#C7D0FF" />
+        <GradientStop Offset="0.52" Color="#8E94FF" />
+        <GradientStop Offset="1" Color="#7778FF" />
+    </LinearGradientBrush>
 </ResourceDictionary>

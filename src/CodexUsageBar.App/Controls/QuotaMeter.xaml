@@ -20,12 +20,29 @@
         <controls:ProgressArc x:Name="Arc"
                               Progress="{Binding Progress}"
                               Opacity="{Binding ArcOpacity}"
+                              Stroke="{DynamicResource QuotaProgressBrush}" />
+        <controls:ProgressArc x:Name="RefreshArc"
+                              IsHitTestVisible="False"
+                              Opacity="0"
+                              Progress="20"
                               RenderTransformOrigin="0.5,0.5"
-                              Stroke="{DynamicResource QuotaProgressBrush}">
+                              Stroke="{DynamicResource QuotaRefreshHighlightBrush}">
             <controls:ProgressArc.RenderTransform>
-                <RotateTransform x:Name="ArcRotation" Angle="0" />
+                <RotateTransform x:Name="RefreshArcRotation" Angle="0" />
             </controls:ProgressArc.RenderTransform>
         </controls:ProgressArc>
+        <Grid x:Name="RefreshDotOrbit"
+              IsHitTestVisible="False"
+              Opacity="0"
+              RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <RotateTransform x:Name="RefreshDotRotation" Angle="0" />
+            </Grid.RenderTransform>
+            <Ellipse x:Name="RefreshDot"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Top"
+                     Fill="{DynamicResource QuotaRefreshHighlightBrush}" />
+        </Grid>
         <StackPanel VerticalAlignment="Center"
                     HorizontalAlignment="Center">
             <TextBlock Tag="Percentage"

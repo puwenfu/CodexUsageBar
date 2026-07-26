@@ -50,7 +50,7 @@
                               Style="{StaticResource CodexMenuIconStyle}" />
                     </MenuItem.Icon>
                     <MenuItem x:Name="ThemeBlueMenuItem"
-                              Header="星海蓝"
+                              Header="沧海星澜"
                               Tag="Theme"
                               IsCheckable="True"
                               Padding="{StaticResource ContextSubmenuItemPadding}"
@@ -69,7 +69,7 @@
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem x:Name="ThemePurpleMenuItem"
-                              Header="暮夜紫"
+                              Header="暮紫流烟"
                               Tag="Theme"
                               IsCheckable="True"
                               Padding="{StaticResource ContextSubmenuItemPadding}"
@@ -87,8 +87,27 @@
                             </Ellipse>
                         </MenuItem.Icon>
                     </MenuItem>
+                    <MenuItem x:Name="ThemeRoseMenuItem"
+                              Header="绯樱流霞"
+                              Tag="Theme"
+                              IsCheckable="True"
+                              Padding="{StaticResource ContextSubmenuItemPadding}"
+                              Style="{StaticResource CodexMenuItemStyle}"
+                              Click="OnThemeRoseClick">
+                        <MenuItem.Icon>
+                            <Ellipse Width="13" Height="13">
+                                <Ellipse.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Offset="0" Color="#FF758A" />
+                                        <GradientStop Offset="0.52" Color="#FF657A" />
+                                        <GradientStop Offset="1" Color="#FF4588" />
+                                    </LinearGradientBrush>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                        </MenuItem.Icon>
+                    </MenuItem>
                     <MenuItem x:Name="ThemeMintMenuItem"
-                              Header="沁薄荷"
+                              Header="薄荷清露"
                               Tag="Theme"
                               IsCheckable="True"
                               Padding="{StaticResource ContextSubmenuItemPadding}"
@@ -107,7 +126,7 @@
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem x:Name="ThemeForestMenuItem"
-                              Header="苍森绿"
+                              Header="苍林叠翠"
                               Tag="Theme"
                               IsCheckable="True"
                               Padding="{StaticResource ContextSubmenuItemPadding}"
@@ -125,6 +144,35 @@
                             </Ellipse>
                         </MenuItem.Icon>
                     </MenuItem>
+                </MenuItem>
+                <MenuItem Header="刷新样式"
+                          controls:MenuChrome.IsRootItem="True"
+                          Style="{StaticResource CodexMenuItemStyle}">
+                    <MenuItem.Icon>
+                        <Path Data="{StaticResource MenuRefreshStyleIcon}"
+                              Style="{StaticResource CodexMenuIconStyle}" />
+                    </MenuItem.Icon>
+                    <MenuItem x:Name="RefreshProgressRingMenuItem"
+                              Header="进度环旋转"
+                              Tag="Theme"
+                              IsCheckable="True"
+                              Padding="{StaticResource ContextSubmenuItemPadding}"
+                              Style="{StaticResource CodexMenuItemStyle}"
+                              Click="OnRefreshProgressRingClick" />
+                    <MenuItem x:Name="RefreshHighlightSweepMenuItem"
+                              Header="流光旋转"
+                              Tag="Theme"
+                              IsCheckable="True"
+                              Padding="{StaticResource ContextSubmenuItemPadding}"
+                              Style="{StaticResource CodexMenuItemStyle}"
+                              Click="OnRefreshHighlightSweepClick" />
+                    <MenuItem x:Name="RefreshDotOrbitMenuItem"
+                              Header="光点巡航"
+                              Tag="Theme"
+                              IsCheckable="True"
+                              Padding="{StaticResource ContextSubmenuItemPadding}"
+                              Style="{StaticResource CodexMenuItemStyle}"
+                              Click="OnRefreshDotOrbitClick" />
                 </MenuItem>
                 <MenuItem x:Name="HideFiveHourMenuItem"
                           Header="隐藏 5 小时"
@@ -147,7 +195,7 @@
                           Click="OnStartupMenuClick">
                     <MenuItem.Icon>
                         <Path Data="{StaticResource MenuStartupIcon}"
-                              Style="{StaticResource CodexMenuIconStyle}" />
+                              Style="{StaticResource CodexMenuFilledIconStyle}" />
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="调试面板"
@@ -212,7 +260,8 @@
             <controls:AdaptiveResetText x:Name="FiveHourResetText"
                                         Text="{Binding FiveHour.ResetText}" />
 
-            <controls:QuotaMeter DataContext="{Binding Weekly}"
+            <controls:QuotaMeter x:Name="WeeklyMeter"
+                                 DataContext="{Binding Weekly}"
                                  IsRefreshing="{Binding DataContext.IsRefreshing,
                                                         RelativeSource={RelativeSource AncestorType=Window}}"
                                  RingDiameter="{Binding DataContext.RingDiameterDip, RelativeSource={RelativeSource AncestorType=Window}}" />

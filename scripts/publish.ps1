@@ -23,6 +23,7 @@ Assert-RequiredReleaseInputs -Paths @{
     License = $licenseFile
     ThirdPartyNotices = $thirdPartyNoticesFile
 }
+Assert-ChangelogVersion -ChangelogPath $changelogFile -ExpectedVersion $version
 
 if (Test-Path -LiteralPath $releaseRoot) {
     throw "Release directory already exists: $releaseRoot"

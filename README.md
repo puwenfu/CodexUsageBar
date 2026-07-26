@@ -1,86 +1,113 @@
 # CodexUsageBar
 
-A quiet Windows 11 taskbar overlay for Codex quota usage.
+<p align="center">
+  <strong>中文</strong> · <a href="./README.en.md">English</a>
+</p>
+
+<p align="center">
+  安静地待在 Windows 11 任务栏里，显示 Codex 剩余额度。
+</p>
 
 [![CI](https://github.com/puwenfu/CodexUsageBar/actions/workflows/ci.yml/badge.svg)](https://github.com/puwenfu/CodexUsageBar/actions/workflows/ci.yml)
-[![Latest release](https://img.shields.io/github/v/release/puwenfu/CodexUsageBar?display_name=tag&sort=semver)](https://github.com/puwenfu/CodexUsageBar/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/puwenfu/CodexUsageBar/total)](https://github.com/puwenfu/CodexUsageBar/releases)
-[![License: MIT](https://img.shields.io/badge/license-MIT-7C3AED.svg)](LICENSE)
+[![最新版本](https://img.shields.io/github/v/release/puwenfu/CodexUsageBar?display_name=tag&sort=semver)](https://github.com/puwenfu/CodexUsageBar/releases/latest)
+[![下载量](https://img.shields.io/github/downloads/puwenfu/CodexUsageBar/total)](https://github.com/puwenfu/CodexUsageBar/releases)
+[![许可证：MIT](https://img.shields.io/badge/license-MIT-7C3AED.svg)](LICENSE)
 [![Windows 11](https://img.shields.io/badge/Windows-11-0078D4?logo=windows11)](https://www.microsoft.com/windows/windows-11)
 
-**[Download the latest release](https://github.com/puwenfu/CodexUsageBar/releases/latest)**
+**[下载最新版本](https://github.com/puwenfu/CodexUsageBar/releases/latest)**
 
-> Unofficial community project. Not affiliated with or endorsed by OpenAI.
+> 非官方社区项目，与 OpenAI 没有隶属关系，也未获得 OpenAI 背书。
 
-![Deterministic CodexUsageBar WPF preview with sample values](assets/codex-usage-bar-taskbar.png)
+## 主题预览
 
-Preview: deterministic WPF rendering at 150% DPI with sample values. It is not
-a live Windows Shell screenshot.
+以下图片由真实 WPF 控件在 150% DPI 下使用示例数据确定性渲染，不是
+Windows Shell 实机截图。时间采用当前的剩余时长格式，例如 `6d 5h 35m`。
 
-## Features
+<table>
+  <tr>
+    <td align="center">
+      <strong>沧海星澜 / Ocean Blue</strong><br>
+      <img src="assets/codex-usage-bar-taskbar.png" width="252" alt="沧海星澜主题，使用剩余时长格式">
+    </td>
+    <td align="center">
+      <strong>暮紫流烟 / Twilight Purple</strong><br>
+      <img src="assets/codex-usage-bar-taskbar-purple.png" width="252" alt="暮紫流烟主题，使用剩余时长格式">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <strong>绯樱流霞 / Rose Glow</strong><br>
+      <img src="assets/codex-usage-bar-taskbar-rose.png" width="252" alt="绯樱流霞主题，使用剩余时长格式">
+    </td>
+    <td align="center">
+      <strong>薄荷清露 / Mint Dew</strong><br>
+      <img src="assets/codex-usage-bar-taskbar-mint.png" width="252" alt="薄荷清露主题，使用剩余时长格式">
+    </td>
+  </tr>
+</table>
 
-- Shows remaining five-hour and weekly Codex allowance with reset times.
-- Uses two compact meters inside the primary Windows 11 taskbar.
-- Refreshes on demand without taking focus or blocking nearby taskbar controls.
-- Keeps the last safe values visible when Codex is temporarily unavailable.
-- Runs as a self-contained executable without storing Codex credentials.
+## 功能
 
-## Requirements
+- 显示 Codex 五小时与每周额度的剩余比例和恢复倒计时。
+- 两个紧凑仪表完整嵌入 Windows 11 主任务栏。
+- 支持手动刷新，不抢占焦点，也不遮挡附近的任务栏控件。
+- Codex 暂时不可用时，保留最后一次安全数据。
+- 以独立 EXE 运行，不复制或保存 Codex 登录凭据。
+- 提供 5 种仪表色彩主题和多种刷新动画。
 
-- Windows 11 with the primary taskbar at the bottom.
-- A supported display layout with space at the left side of the primary taskbar.
-- The Codex App or Codex CLI installed and signed in locally.
+## 运行要求
 
-## Download and run
+- Windows 11，主任务栏位于屏幕底部。
+- 主任务栏左侧有足够的显示空间。
+- 本机已安装并登录 Codex App 或 Codex CLI。
 
-Download the current Windows ZIP from [GitHub Releases](https://github.com/puwenfu/CodexUsageBar/releases/latest), extract it, and run `CodexUsageBar.exe`.
+## 下载与运行
 
-The EXE is unsigned. Windows may show an unknown publisher warning or
-SmartScreen prompt before the first run. Review the release and checksum before
-choosing whether to continue.
+从 [GitHub Releases](https://github.com/puwenfu/CodexUsageBar/releases/latest)
+下载当前 Windows ZIP，解压后运行 `CodexUsageBar.exe`。
 
-## Verify the download
+EXE 未进行代码签名。首次运行时 Windows 可能显示“未知发布者”警告或
+SmartScreen 提示。继续前请核对发布来源和校验值。
 
-Each release includes `SHA256SUMS.txt`. In PowerShell, calculate the ZIP hash:
+## 校验下载
+
+每个版本都提供 `SHA256SUMS.txt`。在 PowerShell 中计算 ZIP 的哈希：
 
 ```powershell
 Get-FileHash .\CodexUsageBar_*_win-x64.zip -Algorithm SHA256
 ```
 
-Compare the displayed SHA-256 value with the ZIP entry in `SHA256SUMS.txt`.
+将显示的 SHA-256 与 `SHA256SUMS.txt` 中对应 ZIP 的记录进行比较。
 
-## Usage
+## 使用
 
-Left-click the widget to refresh. Right-click it to refresh, change the meter
-theme, control the optional startup entry, open the debug panel, or exit.
-Startup is disabled by default.
+左键单击小组件可刷新。右键菜单可刷新、切换仪表主题或刷新动画、控制可选
+的开机启动、打开调试面板或退出。开机启动默认关闭。
 
-## Privacy
+## 隐私
 
-The widget reads quota data through the local Codex app-server protocol and
-identifies itself with the current CodexUsageBar application version. It does
-not copy or persist credentials, account identifiers, raw quota responses, or
-task content. See [Privacy](docs/privacy.md) for details.
+小组件通过本地 Codex app-server 协议读取额度数据，并使用当前
+CodexUsageBar 版本标识自身。它不会复制或保存凭据、账户标识、原始额度响应
+或任务内容。详见[隐私说明](docs/privacy.md)。
 
-## Known limitations
+## 已知限制
 
-The widget supports the primary bottom Windows 11 taskbar. It exits instead of
-drawing elsewhere when the required taskbar is hidden, unavailable, or not
-supported. Codex protocol changes or temporary connectivity failures can delay
-refreshing; the last safe values remain visible when available.
+目前支持位于屏幕底部的 Windows 11 主任务栏。当所需任务栏被隐藏、不可用或
+布局不受支持时，应用会退出，而不会绘制到其他位置。Codex 协议变化或临时连接
+失败可能延迟刷新；如有安全的历史数据，界面会继续显示最后一次成功结果。
 
-## Build from source
+## 从源码构建
 
-Install the .NET 8 SDK, then run:
+安装 .NET 8 SDK，然后运行：
 
 ```powershell
 dotnet restore CodexUsageBar.sln
 dotnet build CodexUsageBar.sln --configuration Release --no-restore
 ```
 
-For a local interactive launch, run `run.bat` from the repository root.
+本地交互式启动请在仓库根目录运行 `run.bat`。
 
-## Test
+## 测试
 
 ```powershell
 dotnet test CodexUsageBar.sln --configuration Release --no-build --verbosity minimal
@@ -88,35 +115,37 @@ powershell -NoProfile -Command "Invoke-Pester -Path '.\tests\PublishSupport.Test
 powershell -NoProfile -Command "Invoke-Pester -Path '.\tests\PublishScript.Tests.ps1'"
 ```
 
-## Release process
+## 发布流程
 
-Only run local packaging when it has been explicitly approved:
+只有在本地打包已被明确批准后，才能运行：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\publish.ps1
 ```
 
-To validate release inputs without publishing:
+只验证发布输入、不执行打包：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\publish.ps1 -WhatIfValidation
 ```
 
-The release ZIP contains the standalone EXE, `README.md`, `CHANGELOG.md`,
-`LICENSE`, and `THIRD-PARTY-NOTICES.txt`, with hashes in `SHA256SUMS.txt`. See
-[Release process](docs/release.md) for the immutable release rules and final EXE
-acceptance steps.
+版本号只维护在 `Directory.Build.props`。如果版本号与 `CHANGELOG.md` 中最新
+已发布条目不一致，验证会在构建前停止。
 
-## Contributing
+发布 ZIP 固定包含独立 EXE、`README.md`、`CHANGELOG.md`、`LICENSE` 和
+`THIRD-PARTY-NOTICES.txt`，哈希记录在 `SHA256SUMS.txt`。不可变发布规则和
+最终 EXE 验收步骤详见[发布流程](docs/release.md)。
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+## 参与贡献
 
-## Security
+参见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
-See [SECURITY.md](SECURITY.md). Do not put credentials, account information, raw
-Codex data, logs, or unredacted screenshots in public reports.
+## 安全
 
-## License
+参见 [SECURITY.md](SECURITY.md)。公开报告中不要放入凭据、账户信息、原始
+Codex 数据、日志或未经脱敏的截图。
 
-CodexUsageBar is available under the [MIT License](LICENSE). Third-party runtime
-notices are in [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt).
+## 许可证
+
+CodexUsageBar 使用 [MIT License](LICENSE)。第三方运行时声明位于
+[THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt)。

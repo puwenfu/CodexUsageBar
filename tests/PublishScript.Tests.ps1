@@ -19,7 +19,13 @@ function New-PublishFixture {
 <Project><PropertyGroup><VersionPrefix>$Version</VersionPrefix></PropertyGroup></Project>
 "@
     Set-Content -LiteralPath (Join-Path $fixtureRoot 'README.md') -Encoding UTF8 -Value '# Fixture'
-    Set-Content -LiteralPath (Join-Path $fixtureRoot 'CHANGELOG.md') -Encoding UTF8 -Value '# Fixture'
+    Set-Content -LiteralPath (Join-Path $fixtureRoot 'CHANGELOG.md') -Encoding UTF8 -Value @"
+# Changelog
+
+## [Unreleased]
+
+## [$Version] - 2026-07-26
+"@
     Set-Content -LiteralPath (Join-Path $fixtureRoot 'LICENSE') -Encoding UTF8 -Value 'MIT fixture'
     Set-Content -LiteralPath (Join-Path $fixtureRoot 'THIRD-PARTY-NOTICES.txt') -Encoding UTF8 -Value 'Third-party fixture'
     Set-Content -LiteralPath (Join-Path $projectDirectory 'CodexUsageBar.App.csproj') -Encoding UTF8 -Value '<Project Sdk="Microsoft.NET.Sdk" />'
@@ -89,6 +95,23 @@ Describe 'publish.ps1' {
 
         $LASTEXITCODE | Should Not Be 0
         ($output | Out-String) | Should Match 'Required release input is missing'
+        Test-Path -LiteralPath $fixture.Release | Should Be $false
+    }
+
+    It 'rejects validation when the changelog version is behind the version source' {
+        $fixture = New-PublishFixture -Version '9.9.7'
+        Set-Content -LiteralPath (Join-Path $fixture.Root 'CHANGELOG.md') -Encoding UTF8 -Value @'
+# Changelog
+
+## [Unreleased]
+
+## [9.8.9] - 2026-07-26
+'@
+
+        $output = & powershell -NoProfile -ExecutionPolicy Bypass -File $fixture.Script -WhatIfValidation 2>&1
+
+        $LASTEXITCODE | Should Not Be 0
+        ($output | Out-String) | Should Match 'Version source and changelog are out of sync'
         Test-Path -LiteralPath $fixture.Release | Should Be $false
     }
 
@@ -335,7 +358,7 @@ exit /b 0
 }
 
 Describe 'release documentation and local build contracts' {
-    It 'defines a pinned Windows CI workflow through the final release candidate' {
+    It 'validates every CI run and packages only manual workflow dispatches' {
         $workflowPath = Join-Path $sourceProjectRoot '.github/workflows/ci.yml'
         Test-Path -LiteralPath $workflowPath -PathType Leaf | Should Be $true
 
@@ -349,9 +372,15 @@ Describe 'release documentation and local build contracts' {
         $workflow | Should Match 'dotnet test CodexUsageBar\.sln --configuration Release --no-build'
         $workflow | Should Match 'PublishSupport\.Tests\.ps1'
         $workflow | Should Match 'PublishScript\.Tests\.ps1'
+        $workflow | Should Match 'Validate release inputs'
+        $workflow | Should Match '\.\\scripts\\publish\.ps1 -WhatIfValidation'
         $workflow | Should Match 'Build release candidate'
         $workflow | Should Match '\.\\scripts\\publish\.ps1'
         $workflow | Should Match 'dist/\*/\*_win-x64\.zip'
+        ([regex]::Matches(
+            $workflow,
+            '(?m)^\s+if:\s+github\.event_name == ''workflow_dispatch''\s*$'
+        )).Count | Should Be 2
     }
 
     It 'preserves the WPF assembly identity in the exact dotnet publish arguments' {
@@ -405,6 +434,7 @@ exit /b 37
 
     It 'keeps the open-source entry documents complete and executable' {
         $requiredFiles = @(
+            'README.en.md',
             'LICENSE',
             'THIRD-PARTY-NOTICES.txt',
             'CONTRIBUTING.md',
@@ -424,30 +454,54 @@ exit /b 37
                 Should Be $true
         }
 
-        $readme = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'README.md') -Raw
-        $readme | Should Match 'GitHub Releases'
-        $readme | Should Match 'https://github\.com/puwenfu/CodexUsageBar/releases/latest'
-        $readme | Should Match '(?m)^Get-FileHash \.\\CodexUsageBar_\*_win-x64\.zip -Algorithm SHA256\s*$'
-        $readme | Should Match 'dotnet restore CodexUsageBar\.sln'
-        $readme | Should Match 'SHA256SUMS\.txt'
-        $readme | Should Match '(?i)not affiliated with or endorsed by OpenAI'
-        $readme | Should Match '(?i)unsigned'
-        $readme | Should Match '(?is)deterministic WPF rendering at 150% DPI with sample values.*not\s+a live Windows Shell screenshot'
+        $previewFiles = @(
+            'assets/codex-usage-bar-taskbar.png',
+            'assets/codex-usage-bar-taskbar-purple.png',
+            'assets/codex-usage-bar-taskbar-rose.png',
+            'assets/codex-usage-bar-taskbar-mint.png'
+        )
+
+        $readmeZh = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'README.md') -Raw
+        $readmeEn = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'README.en.md') -Raw
+        $readmeZh | Should Match '<strong>中文</strong>.*README\.en\.md.*English'
+        $readmeEn | Should Match 'README\.md.*中文.*<strong>English</strong>'
+
+        foreach ($relativePath in $previewFiles) {
+            Test-Path -LiteralPath (Join-Path $sourceProjectRoot $relativePath) -PathType Leaf |
+                Should Be $true
+            $readmeZh | Should Match ([regex]::Escape($relativePath))
+            $readmeEn | Should Match ([regex]::Escape($relativePath))
+        }
+
+        $readmeEn | Should Match 'GitHub Releases'
+        $readmeEn | Should Match 'https://github\.com/puwenfu/CodexUsageBar/releases/latest'
+        $readmeEn | Should Match '(?m)^Get-FileHash \.\\CodexUsageBar_\*_win-x64\.zip -Algorithm SHA256\s*$'
+        $readmeEn | Should Match 'dotnet restore CodexUsageBar\.sln'
+        $readmeEn | Should Match 'SHA256SUMS\.txt'
+        $readmeEn | Should Match '(?i)not affiliated with or endorsed by OpenAI'
+        $readmeEn | Should Match '(?i)unsigned'
+        $readmeEn | Should Match '(?is)deterministic renders of the real WPF widget at 150% DPI with\s+sample values.*not live Windows Shell screenshots'
+        $readmeEn | Should Match '6d 5h 35m'
+        $readmeZh | Should Match '6d 5h 35m'
     }
 
     It 'documents the parameterless release command and release contents' {
-        $readme = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'README.md') -Raw
+        $readmeZh = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'README.md') -Raw
+        $readmeEn = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'README.en.md') -Raw
         $publishScript = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'scripts/publish.ps1') -Raw
 
-        $readme | Should Match '(?m)^powershell -ExecutionPolicy Bypass -File \.\\scripts\\publish\.ps1\s*$'
-        $readme | Should Match '(?m)^powershell -ExecutionPolicy Bypass -File \.\\scripts\\publish\.ps1 -WhatIfValidation\s*$'
-        $readme | Should Match '(?i)standalone EXE'
-        $readme | Should Match '(?is)ZIP.*README\.md.*CHANGELOG\.md.*LICENSE.*THIRD-PARTY-NOTICES\.txt'
-        $readme | Should Match 'SHA256SUMS\.txt'
+        foreach ($readme in @($readmeZh, $readmeEn)) {
+            $readme | Should Match '(?m)^powershell -ExecutionPolicy Bypass -File \.\\scripts\\publish\.ps1\s*$'
+            $readme | Should Match '(?m)^powershell -ExecutionPolicy Bypass -File \.\\scripts\\publish\.ps1 -WhatIfValidation\s*$'
+            $readme | Should Match '(?is)ZIP.*README\.md.*CHANGELOG\.md.*LICENSE.*THIRD-PARTY-NOTICES\.txt'
+            $readme | Should Match 'SHA256SUMS\.txt'
+        }
+
+        $readmeEn | Should Match '(?i)standalone EXE'
         $publishScript | Should Match '-p:EnableCompressionInSingleFile=true'
     }
 
-    It 'records 1.2.4 as the current maintenance release' {
+    It 'keeps the project version aligned with the latest changelog release' {
         [xml]$props = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'Directory.Build.props') -Raw
         $changelog = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'CHANGELOG.md') -Raw
         $versionNodes = @($props.SelectNodes('//VersionPrefix'))
@@ -456,13 +510,14 @@ exit /b 37
             '(?m)^## \[(?!Unreleased\])([^\]]+)\]')
 
         $versionNodes.Count | Should Be 1
-        $versionNodes[0].InnerText | Should Be '1.2.4'
+        $versionNodes[0].InnerText | Should Be '1.2.5'
         $releasedHeadings.Count | Should BeGreaterThan 0
-        $releasedHeadings[0].Groups[1].Value | Should Be '1.2.4'
-        $changelog | Should Match '\[1\.2\.4\]\s+-\s+2026-07-26'
-        $changelog | Should Match '(?i)submenu'
-        $changelog | Should Match '(?i)icon'
-        $changelog | Should Match '(?i)compressed'
+        $releasedHeadings[0].Groups[1].Value |
+            Should BeExactly $versionNodes[0].InnerText
+        $changelog | Should Match '\[1\.2\.5\]\s+-\s+2026-07-26'
+        $changelog | Should Match '(?i)refresh animation'
+        $changelog | Should Match '(?i)nested menus'
+        $changelog | Should Match '(?i)debug panel'
         $changelog | Should Match '(?i)GitHub Actions'
     }
 

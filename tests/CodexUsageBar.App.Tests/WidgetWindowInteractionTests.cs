@@ -14,6 +14,38 @@ namespace CodexUsageBar.App.Tests;
 [Collection(WpfTestCollection.Name)]
 public sealed class WidgetWindowInteractionTests
 {
+    [Theory]
+    [InlineData(1d)]
+    [InlineData(1.5d)]
+    [InlineData(2d)]
+    public void ContextMenuClearance_KeepsVisiblePanelOnePhysicalPixelAboveTaskbar(
+        double dpiScale)
+    {
+        const double panelBottomDip = 700d;
+        const double workAreaBottomDip = 680d;
+
+        var offset = WidgetWindow.CalculateTaskbarClearanceOffset(
+            panelBottomDip,
+            workAreaBottomDip,
+            1d / dpiScale);
+
+        Assert.Equal(
+            (workAreaBottomDip * dpiScale) - 1d,
+            (panelBottomDip + offset) * dpiScale,
+            precision: 6);
+    }
+
+    [Fact]
+    public void ContextMenuClearance_DoesNotMovePanelThatAlreadyClearsTaskbar()
+    {
+        var offset = WidgetWindow.CalculateTaskbarClearanceOffset(
+            panelBottomDip: 670d,
+            workAreaBottomDip: 680d,
+            onePhysicalPixelDip: 1d);
+
+        Assert.Equal(0d, offset);
+    }
+
     [Fact]
     public void ContextMenu_HasExactItems_AndStartupWritesOnlyAfterClick() => StaTest.Run(() =>
     {
@@ -26,13 +58,16 @@ public sealed class WidgetWindowInteractionTests
             var menu = Assert.IsType<ContextMenu>(window.WidgetRoot.ContextMenu);
             var items = menu.Items.Cast<object>().ToArray();
             Assert.Same(window.FindResource("CodexContextMenuStyle"), menu.Style);
-            Assert.Equal(8, items.Length);
+            Assert.Equal(9, items.Length);
             Assert.Equal("立即刷新", Assert.IsType<MenuItem>(items[0]).Header);
             var themeItem = Assert.IsType<MenuItem>(items[1]);
             Assert.Equal("主题颜色", themeItem.Header);
             Assert.Equal(
-                ["星海蓝", "暮夜紫", "沁薄荷", "苍森绿"],
+                ["沧海星澜", "暮紫流烟", "绯樱流霞", "薄荷清露", "苍林叠翠"],
                 themeItem.Items.Cast<MenuItem>().Select(item => item.Header).ToArray());
+            Assert.All(
+                themeItem.Items.Cast<MenuItem>(),
+                item => Assert.Equal(4, Assert.IsType<string>(item.Header).Length));
             Assert.All(themeItem.Items.Cast<MenuItem>(), item => Assert.True(item.IsCheckable));
             Assert.All(themeItem.Items.Cast<MenuItem>(), item =>
             {
@@ -40,16 +75,22 @@ public sealed class WidgetWindowInteractionTests
                 Assert.IsType<Ellipse>(item.Icon);
                 Assert.Equal(new Thickness(8, 6, 2, 6), item.Padding);
             });
-            var hideFiveHourItem = Assert.IsType<MenuItem>(items[2]);
+            var refreshStyleItem = Assert.IsType<MenuItem>(items[2]);
+            Assert.Equal("刷新样式", refreshStyleItem.Header);
+            Assert.Equal(
+                ["进度环旋转", "流光旋转", "光点巡航"],
+                refreshStyleItem.Items.Cast<MenuItem>().Select(item => item.Header).ToArray());
+            Assert.All(refreshStyleItem.Items.Cast<MenuItem>(), item => Assert.True(item.IsCheckable));
+            var hideFiveHourItem = Assert.IsType<MenuItem>(items[3]);
             Assert.Equal("隐藏 5 小时", hideFiveHourItem.Header);
             Assert.True(hideFiveHourItem.IsCheckable);
             Assert.Equal("Toggle", hideFiveHourItem.Tag);
-            var startupItem = Assert.IsType<MenuItem>(items[3]);
+            var startupItem = Assert.IsType<MenuItem>(items[4]);
             Assert.Equal("开机启动", startupItem.Header);
             Assert.True(startupItem.IsCheckable);
             Assert.Equal("Toggle", startupItem.Tag);
-            Assert.Equal("调试面板", Assert.IsType<MenuItem>(items[4]).Header);
-            var aboutItem = Assert.IsType<MenuItem>(items[5]);
+            Assert.Equal("调试面板", Assert.IsType<MenuItem>(items[5]).Header);
+            var aboutItem = Assert.IsType<MenuItem>(items[6]);
             Assert.Equal("关于", aboutItem.Header);
             Assert.Single(aboutItem.Items);
             var aboutContent = Assert.IsType<MenuItem>(aboutItem.Items[0]);
@@ -63,22 +104,56 @@ public sealed class WidgetWindowInteractionTests
             Assert.Equal(
                 AboutVersionProvider.GetDisplayText(typeof(WidgetWindow).Assembly),
                 window.AboutVersionText.Text);
-            Assert.IsType<Separator>(items[6]);
-            var exitItem = Assert.IsType<MenuItem>(items[7]);
+            Assert.IsType<Separator>(items[7]);
+            var exitItem = Assert.IsType<MenuItem>(items[8]);
             Assert.Same(
                 window.FindResource("CodexMenuIconStyle"),
                 Assert.IsType<Path>(exitItem.Icon).Style);
-            Assert.Equal("退出", Assert.IsType<MenuItem>(items[7]).Header);
-            Assert.Equal("Exit", Assert.IsType<MenuItem>(items[7]).Tag);
+            Assert.Equal("退出", Assert.IsType<MenuItem>(items[8]).Header);
+            Assert.Equal("Exit", Assert.IsType<MenuItem>(items[8]).Tag);
             Assert.Empty(startup.Writes);
 
             Assert.IsType<MenuItem>(items[0]).RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
             startupItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
-            Assert.IsType<MenuItem>(items[7]).RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            Assert.IsType<MenuItem>(items[8]).RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
 
             Assert.Equal([RefreshReason.Manual], refresh.Reasons);
             Assert.Equal([true], startup.Writes);
             Assert.Equal(1, exitCalls);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [Fact]
+    public void RefreshAnimationStyle_AppliesAtStartupAndPersistsMenuChanges() => StaTest.Run(() =>
+    {
+        var preferences = new SessionWidgetPreferences(
+            refreshAnimationStyle: RefreshAnimationStyle.ProgressRing);
+        var window = CreateWindow(
+            new RecordingRefreshRequester(),
+            new RecordingStartupRegistration(false),
+            () => { },
+            preferences: preferences);
+        try
+        {
+            Assert.Equal(RefreshAnimationStyle.ProgressRing, window.FiveHourMeter.RefreshAnimationStyle);
+            Assert.Equal(RefreshAnimationStyle.ProgressRing, window.WeeklyMeter.RefreshAnimationStyle);
+
+            var menu = Assert.IsType<ContextMenu>(window.WidgetRoot.ContextMenu);
+            menu.RaiseEvent(new RoutedEventArgs(ContextMenu.OpenedEvent));
+            Assert.True(window.RefreshProgressRingMenuItem.IsChecked);
+            Assert.False(window.RefreshHighlightSweepMenuItem.IsChecked);
+            Assert.False(window.RefreshDotOrbitMenuItem.IsChecked);
+
+            window.RefreshDotOrbitMenuItem.RaiseEvent(
+                new RoutedEventArgs(MenuItem.ClickEvent));
+
+            Assert.Equal(RefreshAnimationStyle.DotOrbit, preferences.RefreshAnimationStyle);
+            Assert.Equal(RefreshAnimationStyle.DotOrbit, window.FiveHourMeter.RefreshAnimationStyle);
+            Assert.Equal(RefreshAnimationStyle.DotOrbit, window.WeeklyMeter.RefreshAnimationStyle);
         }
         finally
         {
@@ -129,6 +204,11 @@ public sealed class WidgetWindowInteractionTests
                 Color.FromRgb(0xD4, 0xA7, 0xFF),
                 Color.FromRgb(0x9B, 0x6C, 0xFF),
                 Color.FromRgb(0x5B, 0x43, 0xFF));
+            AssertThemeCircle(
+                window.ThemeRoseMenuItem,
+                Color.FromRgb(0xFF, 0x75, 0x8A),
+                Color.FromRgb(0xFF, 0x65, 0x7A),
+                Color.FromRgb(0xFF, 0x45, 0x88));
             AssertThemeCircle(
                 window.ThemeMintMenuItem,
                 Color.FromRgb(0xEB, 0xFF, 0xCD),
@@ -354,5 +434,8 @@ public sealed class WidgetWindowInteractionTests
                 VisibilityWhenWritten.Add(readVisibility());
             }
         }
+
+        public RefreshAnimationStyle RefreshAnimationStyle { get; set; } =
+            RefreshAnimationStyle.ProgressRing;
     }
 }

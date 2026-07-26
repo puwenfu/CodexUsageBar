@@ -72,7 +72,7 @@ public sealed class ContextMenuThemeTests
             Header = "主题颜色",
             Style = Assert.IsType<Style>(resources["CodexMenuItemStyle"]),
         };
-        item.Items.Add(new MenuItem { Header = "星海蓝" });
+        item.Items.Add(new MenuItem { Header = "沧海星澜" });
 
         item.ApplyTemplate();
 
@@ -87,17 +87,23 @@ public sealed class ContextMenuThemeTests
             new Size(120, 96),
             new Size(180, 32),
             new Point());
+        var dpiScale = VisualTreeHelper.GetDpi(item).DpiScaleX;
+        var twoPhysicalPixelsDip = 2d / dpiScale;
 
         Assert.Collection(
             placements,
             right =>
             {
-                Assert.Equal(new Point(180, 0), right.Point);
+                Assert.Equal(
+                    new Point(181d + twoPhysicalPixelsDip, 0),
+                    right.Point);
                 Assert.Equal(PopupPrimaryAxis.Vertical, right.PrimaryAxis);
             },
             left =>
             {
-                Assert.Equal(new Point(-120, 0), left.Point);
+                Assert.Equal(
+                    new Point(-111d - twoPhysicalPixelsDip, 0),
+                    left.Point);
                 Assert.Equal(PopupPrimaryAxis.Vertical, left.PrimaryAxis);
             });
     });
@@ -157,7 +163,7 @@ public sealed class ContextMenuThemeTests
             Header = "主题颜色",
             Style = Assert.IsType<Style>(resources["CodexMenuItemStyle"]),
         };
-        item.Items.Add(new MenuItem { Header = "星海蓝" });
+        item.Items.Add(new MenuItem { Header = "沧海星澜" });
 
         item.ApplyTemplate();
 
@@ -185,7 +191,7 @@ public sealed class ContextMenuThemeTests
         MenuChrome.SetIsRootItem(rootItem, true);
         rootItem.Items.Add(new MenuItem
         {
-            Header = "星海蓝",
+            Header = "沧海星澜",
             Style = itemStyle,
         });
         var menu = new ContextMenu

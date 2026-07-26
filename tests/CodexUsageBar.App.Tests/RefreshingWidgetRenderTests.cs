@@ -43,6 +43,93 @@ public sealed class RefreshingWidgetRenderTests
         }
     });
 
+    [Theory]
+    [InlineData(96)]
+    [InlineData(144)]
+    [InlineData(192)]
+    public void DotOrbitStyle_RemainsInsideRingAtRequiredDpi(int dpi) => StaTest.Run(() =>
+    {
+        var window = CreateRefreshingWindow(dpi);
+        try
+        {
+            ShowOffscreen(window);
+            var meters = FindVisualChildren<QuotaMeter>(window).ToArray();
+            Assert.Equal(2, meters.Length);
+
+            foreach (var meter in meters)
+            {
+                meter.RefreshAnimationStyle = RefreshAnimationStyle.DotOrbit;
+                meter.ApplyRefreshVisualState(animationsEnabled: true);
+                meter.RefreshDotRotation.BeginAnimation(
+                    System.Windows.Media.RotateTransform.AngleProperty,
+                    null);
+
+                foreach (var angle in new[] { 0d, 90d, 180d, 270d })
+                {
+                    meter.RefreshDotRotation.Angle = angle;
+                    window.UpdateLayout();
+                    var bounds = meter.RefreshDot
+                        .TransformToAncestor(meter)
+                        .TransformBounds(
+                            new Rect(
+                                new Size(
+                                    meter.RefreshDot.ActualWidth,
+                                    meter.RefreshDot.ActualHeight)));
+
+                    Assert.InRange(bounds.Left, -0.01d, meter.ActualWidth);
+                    Assert.InRange(bounds.Top, -0.01d, meter.ActualHeight);
+                    Assert.InRange(bounds.Right, 0d, meter.ActualWidth + 0.01d);
+                    Assert.InRange(bounds.Bottom, 0d, meter.ActualHeight + 0.01d);
+                }
+
+                meter.RefreshDotRotation.Angle = 45d;
+            }
+
+            window.UpdateLayout();
+            SaveVisual(Render(window, dpi), $"widget-refresh-dot-{dpi}dpi.png");
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [Theory]
+    [InlineData(96)]
+    [InlineData(144)]
+    [InlineData(192)]
+    public void HighlightSweepStyle_RendersBrightArcAtRequiredDpi(int dpi) => StaTest.Run(() =>
+    {
+        var window = CreateRefreshingWindow(dpi);
+        try
+        {
+            ShowOffscreen(window);
+            var meters = FindVisualChildren<QuotaMeter>(window).ToArray();
+            Assert.Equal(2, meters.Length);
+
+            foreach (var meter in meters)
+            {
+                meter.RefreshAnimationStyle = RefreshAnimationStyle.HighlightSweep;
+                meter.ApplyRefreshVisualState(animationsEnabled: true);
+                meter.RefreshArcRotation.BeginAnimation(
+                    System.Windows.Media.RotateTransform.AngleProperty,
+                    null);
+                meter.RefreshArcRotation.Angle = 45d;
+
+                Assert.Equal(1d, meter.RefreshArc.Opacity);
+                Assert.Equal(20d, meter.RefreshArc.Progress);
+                Assert.Equal(Visibility.Visible, meter.Arc.Visibility);
+            }
+
+            window.UpdateLayout();
+            SaveVisual(Render(window, dpi), $"widget-refresh-highlight-{dpi}dpi.png");
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
     private static WidgetWindow CreateRefreshingWindow(int dpi)
     {
         var display = new WidgetDisplayModel(
@@ -98,10 +185,15 @@ public sealed class RefreshingWidgetRenderTests
 
     private static void SaveRefreshing(BitmapSource bitmap, int dpi)
     {
+        SaveVisual(bitmap, $"widget-refreshing-{dpi}dpi.png");
+    }
+
+    private static void SaveVisual(BitmapSource bitmap, string fileName)
+    {
         var root = FindRepositoryRoot();
         var directory = Path.Combine(root, "artifacts", "visual");
         Directory.CreateDirectory(directory);
-        var path = Path.Combine(directory, $"widget-refreshing-{dpi}dpi.png");
+        var path = Path.Combine(directory, fileName);
         using var stream = File.Create(path);
         var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(bitmap));
