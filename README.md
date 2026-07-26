@@ -26,21 +26,17 @@ Windows Shell 实机截图。时间采用当前的剩余时长格式，例如 `6
 <table>
   <tr>
     <td align="center">
-      <strong>沧海星澜 / Ocean Blue</strong><br>
       <img src="assets/codex-usage-bar-taskbar.png" width="252" alt="沧海星澜主题，使用剩余时长格式">
     </td>
     <td align="center">
-      <strong>暮紫流烟 / Twilight Purple</strong><br>
       <img src="assets/codex-usage-bar-taskbar-purple.png" width="252" alt="暮紫流烟主题，使用剩余时长格式">
     </td>
   </tr>
   <tr>
     <td align="center">
-      <strong>绯樱流霞 / Rose Glow</strong><br>
       <img src="assets/codex-usage-bar-taskbar-rose.png" width="252" alt="绯樱流霞主题，使用剩余时长格式">
     </td>
     <td align="center">
-      <strong>薄荷清露 / Mint Dew</strong><br>
       <img src="assets/codex-usage-bar-taskbar-mint.png" width="252" alt="薄荷清露主题，使用剩余时长格式">
     </td>
   </tr>

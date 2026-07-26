@@ -27,21 +27,17 @@ remaining-duration format, such as `6d 5h 35m`.
 <table>
   <tr>
     <td align="center">
-      <strong>Ocean Blue / 沧海星澜</strong><br>
       <img src="assets/codex-usage-bar-taskbar.png" width="252" alt="Ocean Blue theme using the remaining-duration format">
     </td>
     <td align="center">
-      <strong>Twilight Purple / 暮紫流烟</strong><br>
       <img src="assets/codex-usage-bar-taskbar-purple.png" width="252" alt="Twilight Purple theme using the remaining-duration format">
     </td>
   </tr>
   <tr>
     <td align="center">
-      <strong>Rose Glow / 绯樱流霞</strong><br>
       <img src="assets/codex-usage-bar-taskbar-rose.png" width="252" alt="Rose Glow theme using the remaining-duration format">
     </td>
     <td align="center">
-      <strong>Mint Dew / 薄荷清露</strong><br>
       <img src="assets/codex-usage-bar-taskbar-mint.png" width="252" alt="Mint Dew theme using the remaining-duration format">
     </td>
   </tr>
