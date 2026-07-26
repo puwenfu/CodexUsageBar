@@ -45,12 +45,6 @@ remaining-duration format, such as `6d 5h 35m`.
       <img src="assets/codex-usage-bar-taskbar-mint.png" width="252" alt="Mint Dew theme using the remaining-duration format">
     </td>
   </tr>
-  <tr>
-    <td align="center" colspan="2">
-      <strong>Forest Green / 苍林叠翠</strong><br>
-      <img src="assets/codex-usage-bar-taskbar-forest.png" width="252" alt="Forest Green theme using the remaining-duration format">
-    </td>
-  </tr>
 </table>
 
 ## Features

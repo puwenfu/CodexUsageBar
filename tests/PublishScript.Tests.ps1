@@ -458,8 +458,7 @@ exit /b 37
             'assets/codex-usage-bar-taskbar.png',
             'assets/codex-usage-bar-taskbar-purple.png',
             'assets/codex-usage-bar-taskbar-rose.png',
-            'assets/codex-usage-bar-taskbar-mint.png',
-            'assets/codex-usage-bar-taskbar-forest.png'
+            'assets/codex-usage-bar-taskbar-mint.png'
         )
 
         $readmeZh = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'README.md') -Raw

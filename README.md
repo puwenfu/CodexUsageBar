@@ -44,12 +44,6 @@ Windows Shell 实机截图。时间采用当前的剩余时长格式，例如 `6
       <img src="assets/codex-usage-bar-taskbar-mint.png" width="252" alt="薄荷清露主题，使用剩余时长格式">
     </td>
   </tr>
-  <tr>
-    <td align="center" colspan="2">
-      <strong>苍林叠翠 / Forest Green</strong><br>
-      <img src="assets/codex-usage-bar-taskbar-forest.png" width="252" alt="苍林叠翠主题，使用剩余时长格式">
-    </td>
-  </tr>
 </table>
 
 ## 功能
