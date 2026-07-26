@@ -510,8 +510,8 @@ exit /b 37
             '(?m)^## \[(?!Unreleased\])([^\]]+)\]')
 
         $versionNodes.Count | Should Be 1
-        $versionNodes[0].InnerText | Should Be '1.2.5'
         $releasedHeadings.Count | Should BeGreaterThan 0
+        $versionNodes[0].InnerText | Should Be '1.3.0'
         $releasedHeadings[0].Groups[1].Value |
             Should BeExactly $versionNodes[0].InnerText
         $changelog | Should Match '\[1\.2\.5\]\s+-\s+2026-07-26'

@@ -15,12 +15,7 @@ public sealed class ContextMenuThemeTests
     public void ContextMenuTheme_ExposesReferenceStylesAndColors() => StaTest.Run(() =>
     {
         Application.ResourceAssembly ??= typeof(WidgetWindow).Assembly;
-        var resources = new ResourceDictionary
-        {
-            Source = new Uri(
-                "/CodexUsageBar.App;component/Themes/ContextMenuTheme.xaml",
-                UriKind.Relative),
-        };
+        var resources = CreateResources();
 
         Assert.Equal(typeof(ContextMenu), Assert.IsType<Style>(resources["CodexContextMenuStyle"]).TargetType);
         Assert.Equal(typeof(MenuItem), Assert.IsType<Style>(resources["CodexMenuItemStyle"]).TargetType);
@@ -61,17 +56,13 @@ public sealed class ContextMenuThemeTests
     public void SubmenuPopup_PrefersRightIndependentlyOfSystemMenuAlignment() => StaTest.Run(() =>
     {
         Application.ResourceAssembly ??= typeof(WidgetWindow).Assembly;
-        var resources = new ResourceDictionary
-        {
-            Source = new Uri(
-                "/CodexUsageBar.App;component/Themes/ContextMenuTheme.xaml",
-                UriKind.Relative),
-        };
+        var resources = CreateResources();
         var item = new MenuItem
         {
             Header = "主题颜色",
             Style = Assert.IsType<Style>(resources["CodexMenuItemStyle"]),
         };
+        item.Resources.MergedDictionaries.Add(resources);
         item.Items.Add(new MenuItem { Header = "沧海星澜" });
 
         item.ApplyTemplate();
@@ -112,16 +103,12 @@ public sealed class ContextMenuThemeTests
     public void ContextMenuChrome_UsesSymmetricEffectSafeArea() => StaTest.Run(() =>
     {
         Application.ResourceAssembly ??= typeof(WidgetWindow).Assembly;
-        var resources = new ResourceDictionary
-        {
-            Source = new Uri(
-                "/CodexUsageBar.App;component/Themes/ContextMenuTheme.xaml",
-                UriKind.Relative),
-        };
+        var resources = CreateResources();
         var menu = new ContextMenu
         {
             Style = Assert.IsType<Style>(resources["CodexContextMenuStyle"]),
         };
+        menu.Resources.MergedDictionaries.Add(resources);
         menu.Items.Add(new MenuItem { Header = "立即刷新" });
 
         menu.ApplyTemplate();
@@ -138,18 +125,14 @@ public sealed class ContextMenuThemeTests
     public void MenuPanels_UseTheSameSingleSurfaceAsDebugPanel() => StaTest.Run(() =>
     {
         Application.ResourceAssembly ??= typeof(WidgetWindow).Assembly;
-        var resources = new ResourceDictionary
-        {
-            Source = new Uri(
-                "/CodexUsageBar.App;component/Themes/ContextMenuTheme.xaml",
-                UriKind.Relative),
-        };
+        var resources = CreateResources();
         var expectedSurface = Assert.IsType<LinearGradientBrush>(
             resources["ContextMenuSurfaceBrush"]);
         var menu = new ContextMenu
         {
             Style = Assert.IsType<Style>(resources["CodexContextMenuStyle"]),
         };
+        menu.Resources.MergedDictionaries.Add(resources);
         menu.Items.Add(new MenuItem { Header = "立即刷新" });
 
         menu.ApplyTemplate();
@@ -163,6 +146,7 @@ public sealed class ContextMenuThemeTests
             Header = "主题颜色",
             Style = Assert.IsType<Style>(resources["CodexMenuItemStyle"]),
         };
+        item.Resources.MergedDictionaries.Add(resources);
         item.Items.Add(new MenuItem { Header = "沧海星澜" });
 
         item.ApplyTemplate();
@@ -176,12 +160,7 @@ public sealed class ContextMenuThemeTests
     public void MainMenuChrome_AlignsRootAndChildItems() => StaTest.Run(() =>
     {
         Application.ResourceAssembly ??= typeof(WidgetWindow).Assembly;
-        var resources = new ResourceDictionary
-        {
-            Source = new Uri(
-                "/CodexUsageBar.App;component/Themes/ContextMenuTheme.xaml",
-                UriKind.Relative),
-        };
+        var resources = CreateResources();
         var itemStyle = Assert.IsType<Style>(resources["CodexMenuItemStyle"]);
         var rootItem = new MenuItem
         {
@@ -198,6 +177,7 @@ public sealed class ContextMenuThemeTests
         {
             Style = Assert.IsType<Style>(resources["CodexContextMenuStyle"]),
         };
+        menu.Resources.MergedDictionaries.Add(resources);
         menu.Items.Add(rootItem);
 
         menu.ApplyTemplate();
@@ -230,12 +210,7 @@ public sealed class ContextMenuThemeTests
     public void MenuIcons_HaveCompleteSemanticSetAndBalancedStroke() => StaTest.Run(() =>
     {
         Application.ResourceAssembly ??= typeof(WidgetWindow).Assembly;
-        var resources = new ResourceDictionary
-        {
-            Source = new Uri(
-                "/CodexUsageBar.App;component/Themes/ContextMenuTheme.xaml",
-                UriKind.Relative),
-        };
+        var resources = CreateResources();
         var keys = new[]
         {
             "MenuRefreshIcon",
@@ -272,12 +247,7 @@ public sealed class ContextMenuThemeTests
     public void MenuIconStroke_FollowsMenuItemForeground() => StaTest.Run(() =>
     {
         Application.ResourceAssembly ??= typeof(WidgetWindow).Assembly;
-        var resources = new ResourceDictionary
-        {
-            Source = new Uri(
-                "/CodexUsageBar.App;component/Themes/ContextMenuTheme.xaml",
-                UriKind.Relative),
-        };
+        var resources = CreateResources();
         var icon = new Path
         {
             Style = Assert.IsType<Style>(resources["CodexMenuIconStyle"]),
@@ -286,6 +256,7 @@ public sealed class ContextMenuThemeTests
         {
             Content = icon,
         };
+        presenter.Resources.MergedDictionaries.Add(resources);
         MenuChrome.SetIconBrush(presenter, Brushes.HotPink);
 
         presenter.ApplyTemplate();
@@ -295,4 +266,22 @@ public sealed class ContextMenuThemeTests
 
         Assert.Same(Brushes.HotPink, icon.Stroke);
     });
+
+    private static ResourceDictionary CreateResources()
+    {
+        var resources = new ResourceDictionary();
+        resources.MergedDictionaries.Add(new ResourceDictionary
+        {
+            Source = new Uri(
+                "/CodexUsageBar.App;component/Themes/SystemThemeDark.xaml",
+                UriKind.Relative),
+        });
+        resources.MergedDictionaries.Add(new ResourceDictionary
+        {
+            Source = new Uri(
+                "/CodexUsageBar.App;component/Themes/ContextMenuTheme.xaml",
+                UriKind.Relative),
+        });
+        return resources;
+    }
 }

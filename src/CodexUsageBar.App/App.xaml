@@ -5,6 +5,7 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/CodexUsageBar.App;component/Themes/SystemThemeDark.xaml" />
                 <ResourceDictionary Source="/CodexUsageBar.App;component/Themes/QuotaTheme.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

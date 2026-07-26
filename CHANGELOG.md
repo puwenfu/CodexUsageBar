@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-07-27
+### Added
+- Added automatic light and dark appearance switching that follows the Windows system theme.
+- Added light variants for all five quota meter color themes.
+
+### Changed
+- Made the taskbar widget, context menu, tooltips, and debug panel adapt their colors when the Windows system theme changes.
+
 ## [1.2.5] - 2026-07-26
 ### Added
 - Added three persistent refresh animation styles and a rose meter theme.

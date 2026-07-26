@@ -13,20 +13,28 @@ public sealed class ContextMenuRenderTests
     [InlineData(96)]
     [InlineData(144)]
     [InlineData(192)]
-    public void MenuTemplate_RendersThemeCircleAndCompactToggleAtTargetDpi(int dpi) => StaTest.Run(() =>
+    public void MenuTemplate_RendersThemeRingAndCompactToggleAtTargetDpi(int dpi) => StaTest.Run(() =>
     {
         Application.ResourceAssembly ??= typeof(WidgetWindow).Assembly;
-        var resources = new ResourceDictionary
+        var resources = new ResourceDictionary();
+        resources.MergedDictionaries.Add(new ResourceDictionary
+        {
+            Source = new Uri(
+                "/CodexUsageBar.App;component/Themes/SystemThemeDark.xaml",
+                UriKind.Relative),
+        });
+        resources.MergedDictionaries.Add(new ResourceDictionary
         {
             Source = new Uri(
                 "/CodexUsageBar.App;component/Themes/ContextMenuTheme.xaml",
                 UriKind.Relative),
-        };
+        });
         var itemStyle = Assert.IsType<Style>(resources["CodexMenuItemStyle"]);
         var menu = new ContextMenu
         {
             Style = Assert.IsType<Style>(resources["CodexContextMenuStyle"]),
         };
+        menu.Resources.MergedDictionaries.Add(resources);
         menu.Resources["QuotaProgressBrush"] = new SolidColorBrush(
             Color.FromRgb(0x58, 0x5E, 0xF6));
         var toggleItem = new MenuItem
@@ -56,7 +64,7 @@ public sealed class ContextMenuRenderTests
             IsCheckable = true,
             IsChecked = true,
             Style = itemStyle,
-            Icon = CreateThemeCircle(),
+            Icon = CreateThemeRing(),
         });
 
         menu.ApplyTemplate();
@@ -108,11 +116,12 @@ public sealed class ContextMenuRenderTests
         Stretch = Stretch.Uniform,
     };
 
-    private static Ellipse CreateThemeCircle() => new()
+    private static Ellipse CreateThemeRing() => new()
     {
-        Width = 13,
-        Height = 13,
-        Fill = new LinearGradientBrush(
+        Width = 11.7,
+        Height = 11.7,
+        StrokeThickness = 1.35,
+        Stroke = new LinearGradientBrush(
             Color.FromRgb(0x8D, 0x9E, 0xFC),
             Color.FromRgb(0x4E, 0x4F, 0xF4),
             45),

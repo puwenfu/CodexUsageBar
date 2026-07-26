@@ -15,6 +15,8 @@ public partial class WidgetWindow : Window
     private readonly IWidgetPreferences _preferences;
     private readonly Action _exit;
     private readonly DebugViewModel _debugViewModel;
+    private readonly ISystemThemeWatcher? _systemThemeWatcher;
+    private SystemTheme _currentSystemTheme = SystemTheme.Dark;
     private Views.DebugWindow? _debugWindow;
 
     public WidgetWindow(WidgetViewModel viewModel, double taskbarHeightDip, DebugViewModel debugViewModel)
@@ -25,7 +27,8 @@ public partial class WidgetWindow : Window
             NullStartupRegistration.Instance,
             new SessionWidgetPreferences(),
             () => { },
-            debugViewModel)
+            debugViewModel,
+            systemThemeWatcher: null)
     {
     }
 
@@ -36,7 +39,8 @@ public partial class WidgetWindow : Window
         IStartupRegistration startupRegistration,
         IWidgetPreferences preferences,
         Action exit,
-        DebugViewModel debugViewModel)
+        DebugViewModel debugViewModel,
+        ISystemThemeWatcher? systemThemeWatcher = null)
     {
         ArgumentNullException.ThrowIfNull(viewModel);
         _refreshRequester = refreshRequester ?? throw new ArgumentNullException(nameof(refreshRequester));
@@ -44,13 +48,21 @@ public partial class WidgetWindow : Window
         _preferences = preferences ?? throw new ArgumentNullException(nameof(preferences));
         _exit = exit ?? throw new ArgumentNullException(nameof(exit));
         _debugViewModel = debugViewModel ?? throw new ArgumentNullException(nameof(debugViewModel));
+        _systemThemeWatcher = systemThemeWatcher;
         if (!double.IsFinite(taskbarHeightDip) || taskbarHeightDip <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(taskbarHeightDip));
         }
 
         InitializeComponent();
+        if (_systemThemeWatcher is not null)
+        {
+            _systemThemeWatcher.ThemeChanged += OnSystemThemeChanged;
+            ApplySystemTheme(_systemThemeWatcher.CurrentTheme);
+            Closed += OnClosed;
+        }
         AboutVersionText.Text = AboutVersionProvider.GetDisplayText(typeof(WidgetWindow).Assembly);
+        WidgetToolTip.DataContext = viewModel;
         DataContext = viewModel;
         ApplyFiveHourVisibility(_preferences.HideFiveHourQuota);
         ApplyRefreshAnimationStyle(_preferences.RefreshAnimationStyle);
@@ -65,6 +77,61 @@ public partial class WidgetWindow : Window
     }
 
     private string _currentTheme = "QuotaTheme.xaml";
+
+    private void OnSystemThemeChanged(object? sender, SystemThemeChangedEventArgs eventArgs)
+    {
+        if (Dispatcher.CheckAccess())
+        {
+            ApplySystemTheme(eventArgs.Theme);
+            return;
+        }
+
+        _ = Dispatcher.BeginInvoke(() => ApplySystemTheme(eventArgs.Theme));
+    }
+
+    internal void ApplySystemTheme(SystemTheme theme)
+    {
+        _currentSystemTheme = theme;
+        SystemThemeResources.Replace(Resources, theme);
+        ApplyThemePreviewBrushes();
+        if (Application.Current is { } application)
+        {
+            SystemThemeResources.Replace(application.Resources, theme);
+            ReplaceTheme(
+                application.Resources,
+                ResolveThemeResourceName(_currentTheme, theme));
+        }
+
+        _debugWindow?.ApplySystemTheme(theme);
+    }
+
+    private void ApplyThemePreviewBrushes()
+    {
+        SetThemePreviewBrush(ThemeBlueMenuItem, "ThemeBluePreviewBrush");
+        SetThemePreviewBrush(ThemePurpleMenuItem, "ThemePurplePreviewBrush");
+        SetThemePreviewBrush(ThemeRoseMenuItem, "ThemeRosePreviewBrush");
+        SetThemePreviewBrush(ThemeMintMenuItem, "ThemeMintPreviewBrush");
+        SetThemePreviewBrush(ThemeForestMenuItem, "ThemeForestPreviewBrush");
+    }
+
+    private void SetThemePreviewBrush(MenuItem menuItem, string resourceKey)
+    {
+        if (menuItem.Icon is System.Windows.Shapes.Ellipse circle
+            && FindResource(resourceKey) is System.Windows.Media.Brush brush)
+        {
+            circle.Stroke = brush;
+        }
+    }
+
+    private void OnClosed(object? sender, EventArgs eventArgs)
+    {
+        Closed -= OnClosed;
+        if (_systemThemeWatcher is not null)
+        {
+            _systemThemeWatcher.ThemeChanged -= OnSystemThemeChanged;
+            _systemThemeWatcher.Dispose();
+        }
+    }
 
     private void OnContextMenuOpened(object sender, RoutedEventArgs eventArgs)
     {
@@ -180,15 +247,40 @@ public partial class WidgetWindow : Window
 
     private void SetTheme(string themeName)
     {
+        if (Application.Current is not { } application)
+        {
+            return;
+        }
+
+        var resourceName = ResolveThemeResourceName(themeName, _currentSystemTheme);
         if (_currentTheme == themeName &&
-            Application.Current.Resources.MergedDictionaries.Any(
-                dictionary => dictionary.Source?.ToString().Contains(themeName) == true))
+            application.Resources.MergedDictionaries.Any(
+                dictionary => dictionary.Source?.ToString().Contains(resourceName) == true))
         {
             return;
         }
 
         _currentTheme = themeName;
-        ReplaceTheme(Application.Current.Resources, themeName);
+        ReplaceTheme(application.Resources, resourceName);
+    }
+
+    internal static string ResolveThemeResourceName(
+        string themeName,
+        SystemTheme systemTheme)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(themeName);
+        if (systemTheme == SystemTheme.Dark)
+        {
+            return themeName;
+        }
+
+        const string extension = ".xaml";
+        if (!themeName.EndsWith(extension, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException("Theme resource names must end with .xaml.", nameof(themeName));
+        }
+
+        return $"{themeName[..^extension.Length]}Light{extension}";
     }
 
     internal static void ReplaceTheme(ResourceDictionary resources, string themeName)
@@ -218,7 +310,7 @@ public partial class WidgetWindow : Window
     {
         if (_debugWindow == null)
         {
-            _debugWindow = new Views.DebugWindow(_debugViewModel);
+            _debugWindow = new Views.DebugWindow(_debugViewModel, _currentSystemTheme);
             _debugWindow.Closed += (s, e) => _debugWindow = null;
             PositionDebugWindow();
             _debugWindow.Show();

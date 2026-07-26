@@ -74,6 +74,9 @@ public sealed class WidgetWindowInteractionTests
                 Assert.Equal("Theme", item.Tag);
                 Assert.IsType<Ellipse>(item.Icon);
                 Assert.Equal(new Thickness(8, 6, 2, 6), item.Padding);
+                Assert.Same(window.FindResource("ColorThemeHeaderTemplate"), item.HeaderTemplate);
+                var header = Assert.IsType<TextBlock>(item.HeaderTemplate.LoadContent());
+                Assert.Equal(new Thickness(2, 0, 0, 0), header.Margin);
             });
             var refreshStyleItem = Assert.IsType<MenuItem>(items[2]);
             Assert.Equal("刷新样式", refreshStyleItem.Header);
@@ -186,7 +189,7 @@ public sealed class WidgetWindowInteractionTests
     });
 
     [Fact]
-    public void ThemeMenuItems_UseActualGradientCircles() => StaTest.Run(() =>
+    public void ThemeMenuItems_UseActualGradientRings() => StaTest.Run(() =>
     {
         var window = CreateWindow(
             new RecordingRefreshRequester(),
@@ -194,31 +197,74 @@ public sealed class WidgetWindowInteractionTests
             () => { });
         try
         {
-            AssertThemeCircle(
+            AssertThemeRing(
                 window.ThemeBlueMenuItem,
                 Color.FromRgb(0x8D, 0x9E, 0xFC),
                 Color.FromRgb(0x58, 0x5E, 0xF6),
                 Color.FromRgb(0x4E, 0x4F, 0xF4));
-            AssertThemeCircle(
+            AssertThemeRing(
                 window.ThemePurpleMenuItem,
                 Color.FromRgb(0xD4, 0xA7, 0xFF),
                 Color.FromRgb(0x9B, 0x6C, 0xFF),
                 Color.FromRgb(0x5B, 0x43, 0xFF));
-            AssertThemeCircle(
+            AssertThemeRing(
                 window.ThemeRoseMenuItem,
                 Color.FromRgb(0xFF, 0x75, 0x8A),
                 Color.FromRgb(0xFF, 0x65, 0x7A),
                 Color.FromRgb(0xFF, 0x45, 0x88));
-            AssertThemeCircle(
+            AssertThemeRing(
                 window.ThemeMintMenuItem,
                 Color.FromRgb(0xEB, 0xFF, 0xCD),
                 Color.FromRgb(0x54, 0xE3, 0xCA),
                 Color.FromRgb(0x67, 0x7F, 0xE4));
-            AssertThemeCircle(
+            AssertThemeRing(
                 window.ThemeForestMenuItem,
                 Color.FromRgb(0xE0, 0xF8, 0xBA),
                 Color.FromRgb(0xD3, 0xE5, 0x2D),
                 Color.FromRgb(0x0C, 0x66, 0x51));
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [Fact]
+    public void ThemeMenuItems_UseBrighterGradientRingsInLightMode() => StaTest.Run(() =>
+    {
+        var window = CreateWindow(
+            new RecordingRefreshRequester(),
+            new RecordingStartupRegistration(false),
+            () => { });
+        try
+        {
+            window.ApplySystemTheme(SystemTheme.Light);
+
+            AssertThemeRing(
+                window.ThemeBlueMenuItem,
+                Color.FromRgb(0xAA, 0xB8, 0xFF),
+                Color.FromRgb(0x74, 0x7E, 0xFF),
+                Color.FromRgb(0x5E, 0x63, 0xFF));
+            AssertThemeRing(
+                window.ThemePurpleMenuItem,
+                Color.FromRgb(0xE2, 0xC8, 0xFF),
+                Color.FromRgb(0xB8, 0x8C, 0xFF),
+                Color.FromRgb(0x80, 0x6C, 0xFF));
+            AssertThemeRing(
+                window.ThemeRoseMenuItem,
+                Color.FromRgb(0xFF, 0x9C, 0xAF),
+                Color.FromRgb(0xFF, 0x7E, 0x96),
+                Color.FromRgb(0xFF, 0x63, 0xA3));
+            AssertThemeRing(
+                window.ThemeMintMenuItem,
+                Color.FromRgb(0xF2, 0xFF, 0xDE),
+                Color.FromRgb(0x73, 0xEC, 0xD6),
+                Color.FromRgb(0x82, 0x96, 0xF0));
+            AssertThemeRing(
+                window.ThemeForestMenuItem,
+                Color.FromRgb(0xEC, 0xFF, 0xCA),
+                Color.FromRgb(0xDE, 0xEF, 0x59),
+                Color.FromRgb(0x2B, 0x80, 0x69));
         }
         finally
         {
@@ -318,7 +364,9 @@ public sealed class WidgetWindowInteractionTests
         {
             window.Show();
             window.UpdateLayout();
-            Assert.Equal(tooltip, window.WidgetRoot.ToolTip);
+            var toolTip = Assert.IsType<ToolTip>(window.WidgetRoot.ToolTip);
+            Assert.Equal(tooltip, toolTip.Content);
+            Assert.Same(window.FindResource("CodexToolTipStyle"), toolTip.Style);
         }
         finally
         {
@@ -347,15 +395,19 @@ public sealed class WidgetWindowInteractionTests
 
             WidgetWindow.ReplaceTheme(resources, "QuotaThemePurple.xaml");
 
-            Assert.Equal(3, resources.MergedDictionaries.Count);
+            Assert.Equal(4, resources.MergedDictionaries.Count);
             Assert.EndsWith(
-                "/Themes/ContextMenuTheme.xaml",
+                "/Themes/SystemThemeDark.xaml",
                 resources.MergedDictionaries[0].Source?.ToString(),
                 StringComparison.Ordinal);
-            Assert.Same(unrelated, resources.MergedDictionaries[1]);
+            Assert.EndsWith(
+                "/Themes/ContextMenuTheme.xaml",
+                resources.MergedDictionaries[1].Source?.ToString(),
+                StringComparison.Ordinal);
+            Assert.Same(unrelated, resources.MergedDictionaries[2]);
             Assert.EndsWith(
                 "/Themes/QuotaThemePurple.xaml",
-                resources.MergedDictionaries[2].Source?.ToString(),
+                resources.MergedDictionaries[3].Source?.ToString(),
                 StringComparison.Ordinal);
         }
         finally
@@ -387,12 +439,14 @@ public sealed class WidgetWindowInteractionTests
             new DebugViewModel());
     }
 
-    private static void AssertThemeCircle(MenuItem item, params Color[] expectedColors)
+    private static void AssertThemeRing(MenuItem item, params Color[] expectedColors)
     {
-        var circle = Assert.IsType<Ellipse>(item.Icon);
-        Assert.Equal(13d, circle.Width);
-        Assert.Equal(13d, circle.Height);
-        var brush = Assert.IsType<LinearGradientBrush>(circle.Fill);
+        var ring = Assert.IsType<Ellipse>(item.Icon);
+        Assert.Equal(11.7d, ring.Width);
+        Assert.Equal(11.7d, ring.Height);
+        Assert.Null(ring.Fill);
+        Assert.Equal(1.35d, ring.StrokeThickness);
+        var brush = Assert.IsType<LinearGradientBrush>(ring.Stroke);
         Assert.Equal(expectedColors, brush.GradientStops.Select(stop => stop.Color).ToArray());
     }
 

@@ -1,0 +1,58 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+    <SolidColorBrush x:Key="WidgetBackgroundBrush" Color="Transparent" />
+    <SolidColorBrush x:Key="QuotaTrackBrush" Color="#B6B6B6" />
+    <SolidColorBrush x:Key="QuotaPrimaryTextBrush" Color="#202124" />
+    <SolidColorBrush x:Key="QuotaSecondaryTextBrush" Color="#565761" />
+    <LinearGradientBrush x:Key="ThemeBluePreviewBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="#AAB8FF" />
+        <GradientStop Offset="0.52" Color="#747EFF" />
+        <GradientStop Offset="1" Color="#5E63FF" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="ThemePurplePreviewBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="#E2C8FF" />
+        <GradientStop Offset="0.52" Color="#B88CFF" />
+        <GradientStop Offset="1" Color="#806CFF" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="ThemeRosePreviewBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="#FF9CAF" />
+        <GradientStop Offset="0.52" Color="#FF7E96" />
+        <GradientStop Offset="1" Color="#FF63A3" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="ThemeMintPreviewBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="#F2FFDE" />
+        <GradientStop Offset="0.52" Color="#73ECD6" />
+        <GradientStop Offset="1" Color="#8296F0" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="ThemeForestPreviewBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="#ECFFCA" />
+        <GradientStop Offset="0.52" Color="#DEEF59" />
+        <GradientStop Offset="1" Color="#2B8069" />
+    </LinearGradientBrush>
+
+    <SolidColorBrush x:Key="ContextMenuBorderBrush" Color="#C7C4CE" />
+    <SolidColorBrush x:Key="ContextMenuHoverBrush" Color="#E7E5EC" />
+    <SolidColorBrush x:Key="ContextMenuDividerBrush" Color="#DCD9E2" />
+    <SolidColorBrush x:Key="ContextMenuPrimaryTextBrush" Color="#202124" />
+    <SolidColorBrush x:Key="ContextMenuSecondaryTextBrush" Color="#55565F" />
+    <SolidColorBrush x:Key="ContextMenuMutedTextBrush" Color="#6F7079" />
+    <SolidColorBrush x:Key="ContextMenuStatusBrush" Color="#16833E" />
+    <SolidColorBrush x:Key="ContextMenuToggleTrackBrush" Color="#D6D3DC" />
+    <SolidColorBrush x:Key="ContextMenuToggleBorderBrush" Color="#5C5F681F" />
+    <SolidColorBrush x:Key="ContextMenuToggleThumbBrush" Color="#666873" />
+    <SolidColorBrush x:Key="ContextMenuToggleCheckedThumbBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ContextMenuExitBrush" Color="#B42318" />
+    <SolidColorBrush x:Key="ContextMenuExitHoverBrush" Color="#8C1D18" />
+    <SolidColorBrush x:Key="DebugInputBackgroundBrush" Color="#FFFFFFFF" />
+    <LinearGradientBrush x:Key="ContextMenuSurfaceBrush"
+                         StartPoint="0,0"
+                         EndPoint="1,1">
+        <GradientStop Offset="0" Color="#FCFAFAFC" />
+        <GradientStop Offset="0.58" Color="#FCF5F5F8" />
+        <GradientStop Offset="1" Color="#FCF0F0F4" />
+    </LinearGradientBrush>
+    <Color x:Key="ContextMenuShadowColor">#000000</Color>
+    <sys:Double x:Key="ContextMenuShadowOpacity">0.16</sys:Double>
+    <sys:Double x:Key="DebugPanelShadowOpacity">0.18</sys:Double>
+</ResourceDictionary>

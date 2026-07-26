@@ -19,13 +19,14 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/CodexUsageBar.App;component/Themes/SystemThemeDark.xaml" />
                 <ResourceDictionary Source="/CodexUsageBar.App;component/Themes/ContextMenuTheme.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <Style x:Key="DebugTitleButtonStyle" TargetType="{x:Type Button}">
                 <Setter Property="Width" Value="28" />
                 <Setter Property="Height" Value="28" />
-                <Setter Property="Foreground" Value="{StaticResource ContextMenuSecondaryTextBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource ContextMenuSecondaryTextBrush}" />
                 <Setter Property="FontFamily" Value="Segoe UI Variable Text" />
                 <Setter Property="FontSize" Value="18" />
                 <Setter Property="Background" Value="Transparent" />
@@ -44,9 +45,9 @@
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="ButtonBackground"
                                             Property="Background"
-                                            Value="{StaticResource ContextMenuHoverBrush}" />
+                                            Value="{DynamicResource ContextMenuHoverBrush}" />
                                     <Setter Property="Foreground"
-                                            Value="{StaticResource ContextMenuPrimaryTextBrush}" />
+                                            Value="{DynamicResource ContextMenuPrimaryTextBrush}" />
                                 </Trigger>
                                 <Trigger Property="IsPressed" Value="True">
                                     <Setter Property="Opacity" Value="0.72" />
@@ -58,7 +59,7 @@
             </Style>
 
             <Style x:Key="DebugCheckBoxStyle" TargetType="{x:Type CheckBox}">
-                <Setter Property="Foreground" Value="{StaticResource ContextMenuSecondaryTextBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource ContextMenuSecondaryTextBrush}" />
                 <Setter Property="FontSize" Value="12" />
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                 <Setter Property="Template">
@@ -89,22 +90,22 @@
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="ToggleBackground"
                                             Property="Background"
-                                            Value="{StaticResource ContextMenuHoverBrush}" />
+                                            Value="{DynamicResource ContextMenuHoverBrush}" />
                                     <Setter Property="Foreground"
-                                            Value="{StaticResource ContextMenuPrimaryTextBrush}" />
+                                            Value="{DynamicResource ContextMenuPrimaryTextBrush}" />
                                 </Trigger>
                                 <Trigger Property="IsChecked" Value="True">
                                     <Setter TargetName="ToggleSwitch"
                                             Property="Background"
-                                            Value="{StaticResource ContextMenuStatusBrush}" />
+                                            Value="{DynamicResource ContextMenuStatusBrush}" />
                                     <Setter TargetName="ToggleThumb"
                                             Property="Fill"
-                                            Value="{StaticResource ContextMenuToggleCheckedThumbBrush}" />
+                                            Value="{DynamicResource ContextMenuToggleCheckedThumbBrush}" />
                                     <Setter TargetName="ToggleThumb"
                                             Property="HorizontalAlignment"
                                             Value="Right" />
                                     <Setter Property="Foreground"
-                                            Value="{StaticResource ContextMenuPrimaryTextBrush}" />
+                                            Value="{DynamicResource ContextMenuPrimaryTextBrush}" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -132,7 +133,7 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type RepeatButton}">
                             <Border Height="4"
-                                    Background="{StaticResource ContextMenuBorderBrush}"
+                                    Background="{DynamicResource ContextMenuBorderBrush}"
                                     CornerRadius="2"
                                     VerticalAlignment="Center" />
                         </ControlTemplate>
@@ -147,7 +148,7 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type Thumb}">
                             <Ellipse Fill="{DynamicResource QuotaProgressBrush}"
-                                     Stroke="{StaticResource ContextMenuPrimaryTextBrush}"
+                                     Stroke="{DynamicResource ContextMenuPrimaryTextBrush}"
                                      StrokeThickness="1" />
                         </ControlTemplate>
                     </Setter.Value>
@@ -182,11 +183,11 @@
 
             <Style x:Key="DebugTextBoxStyle" TargetType="{x:Type TextBox}">
                 <Setter Property="Height" Value="31" />
-                <Setter Property="Background" Value="#E62D2E33" />
-                <Setter Property="Foreground" Value="{StaticResource ContextMenuPrimaryTextBrush}" />
-                <Setter Property="CaretBrush" Value="{StaticResource ContextMenuPrimaryTextBrush}" />
+                <Setter Property="Background" Value="{DynamicResource DebugInputBackgroundBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource ContextMenuPrimaryTextBrush}" />
+                <Setter Property="CaretBrush" Value="{DynamicResource ContextMenuPrimaryTextBrush}" />
                 <Setter Property="SelectionBrush" Value="{DynamicResource QuotaProgressBrush}" />
-                <Setter Property="BorderBrush" Value="{StaticResource ContextMenuBorderBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource ContextMenuBorderBrush}" />
                 <Setter Property="BorderThickness" Value="1" />
                 <Setter Property="Padding" Value="9,0" />
                 <Setter Property="FontSize" Value="12" />
@@ -212,7 +213,7 @@
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="InputBackground"
                                             Property="Background"
-                                            Value="{StaticResource ContextMenuHoverBrush}" />
+                                            Value="{DynamicResource ContextMenuHoverBrush}" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -221,7 +222,7 @@
             </Style>
 
             <Style x:Key="DebugLabelStyle" TargetType="{x:Type TextBlock}">
-                <Setter Property="Foreground" Value="{StaticResource ContextMenuSecondaryTextBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource ContextMenuSecondaryTextBrush}" />
                 <Setter Property="FontSize" Value="12" />
                 <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
@@ -232,16 +233,16 @@
         <Border x:Name="DebugPanel"
                 Width="196"
                 Height="278"
-                Background="{StaticResource ContextMenuSurfaceBrush}"
-                BorderBrush="{StaticResource ContextMenuBorderBrush}"
+                Background="{DynamicResource ContextMenuSurfaceBrush}"
+                BorderBrush="{DynamicResource ContextMenuBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="11"
                 SnapsToDevicePixels="True">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="16"
                                   ShadowDepth="4"
-                                  Opacity="0.28"
-                                  Color="#000000" />
+                                  Opacity="{DynamicResource DebugPanelShadowOpacity}"
+                                  Color="{DynamicResource ContextMenuShadowColor}" />
             </Border.Effect>
             <Grid>
                 <Grid.RowDefinitions>
@@ -256,7 +257,7 @@
                     <Grid>
                         <TextBlock x:Name="DebugTitle"
                                    Text="调试面板"
-                                   Foreground="{StaticResource ContextMenuPrimaryTextBrush}"
+                                   Foreground="{DynamicResource ContextMenuPrimaryTextBrush}"
                                    FontSize="14"
                                    VerticalAlignment="Center" />
                         <Button x:Name="CloseButton"
@@ -280,7 +281,7 @@
                         <TextBlock Text="5h 额度百分比"
                                    Style="{StaticResource DebugLabelStyle}" />
                         <TextBlock Text="{Binding FiveHourPercentage, StringFormat={}{0}%}"
-                                   Foreground="{StaticResource ContextMenuPrimaryTextBrush}"
+                                   Foreground="{DynamicResource ContextMenuPrimaryTextBrush}"
                                    FontSize="12"
                                    HorizontalAlignment="Right" />
                     </Grid>
@@ -305,7 +306,7 @@
                         <TextBlock Text="周额度百分比"
                                    Style="{StaticResource DebugLabelStyle}" />
                         <TextBlock Text="{Binding WeeklyPercentage, StringFormat={}{0}%}"
-                                   Foreground="{StaticResource ContextMenuPrimaryTextBrush}"
+                                   Foreground="{DynamicResource ContextMenuPrimaryTextBrush}"
                                    FontSize="12"
                                    HorizontalAlignment="Right" />
                     </Grid>
