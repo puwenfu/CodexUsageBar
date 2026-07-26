@@ -21,9 +21,9 @@ public sealed class SystemThemeRenderTests
     {
         Application.ResourceAssembly ??= typeof(WidgetWindow).Assembly;
         var display = new WidgetDisplayModel(
-            new QuotaDisplayWindow("72%", "5h", "00:35", 1),
-            new QuotaDisplayWindow("41%", "周", "周五 18:20", 1),
-            "5小时恢复：00:35\n每周恢复：周五 18:20",
+            new QuotaDisplayWindow("70%", "5h", "1h 20m", 1),
+            new QuotaDisplayWindow("41%", "周", "4d 12h 56m", 1),
+            "5小时恢复：1h 20m\n每周恢复：4d 12h 56m",
             IsRefreshing: false,
             IsStale: false);
         var window = new WidgetWindow(

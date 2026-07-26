@@ -458,13 +458,17 @@ exit /b 37
             'assets/codex-usage-bar-taskbar.png',
             'assets/codex-usage-bar-taskbar-purple.png',
             'assets/codex-usage-bar-taskbar-rose.png',
-            'assets/codex-usage-bar-taskbar-mint.png'
+            'assets/codex-usage-bar-taskbar-mint.png',
+            'assets/codex-usage-bar-taskbar-forest.png',
+            'assets/codex-usage-bar-taskbar-light.png'
         )
 
         $readmeZh = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'README.md') -Raw
         $readmeEn = Get-Content -LiteralPath (Join-Path $sourceProjectRoot 'README.en.md') -Raw
         $readmeZh | Should Match '<strong>中文</strong>.*README\.en\.md.*English'
         $readmeEn | Should Match 'README\.md.*中文.*<strong>English</strong>'
+        $readmeZh | Should Match '自动跟随 Windows 系统明暗模式'
+        $readmeEn | Should Match 'Follows the Windows light or dark system appearance'
 
         foreach ($relativePath in $previewFiles) {
             Test-Path -LiteralPath (Join-Path $sourceProjectRoot $relativePath) -PathType Leaf |

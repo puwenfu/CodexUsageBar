@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  A quiet Windows 11 taskbar overlay for Codex quota usage.
+  A quiet Windows 11 taskbar overlay for Codex quota usage that follows the system appearance.
 </p>
 
 [![CI](https://github.com/puwenfu/CodexUsageBar/actions/workflows/ci.yml/badge.svg)](https://github.com/puwenfu/CodexUsageBar/actions/workflows/ci.yml)
@@ -21,8 +21,9 @@
 ## Theme previews
 
 These images are deterministic renders of the real WPF widget at 150% DPI with
-sample values, not live Windows Shell screenshots. Reset times use the current
-remaining-duration format, such as `4d 12h 56m`.
+sample values, not live Windows Shell screenshots. All five meter themes include
+matching light variants and switch live with the Windows system appearance.
+Reset times use the current remaining-duration format, such as `4d 12h 56m`.
 
 <table>
   <tr>
@@ -41,6 +42,14 @@ remaining-duration format, such as `4d 12h 56m`.
       <img src="assets/codex-usage-bar-taskbar-mint.png" width="252" alt="Mint Dew theme using the remaining-duration format">
     </td>
   </tr>
+  <tr>
+    <td align="center">
+      <img src="assets/codex-usage-bar-taskbar-forest.png" width="252" alt="Forest Green theme using the remaining-duration format">
+    </td>
+    <td align="center">
+      <img src="assets/codex-usage-bar-taskbar-light.png" width="252" alt="Ocean Blue theme following the Windows light appearance">
+    </td>
+  </tr>
 </table>
 
 ## Features
@@ -50,7 +59,8 @@ remaining-duration format, such as `4d 12h 56m`.
 - Refreshes on demand without taking focus or blocking nearby taskbar controls.
 - Keeps the last safe values visible when Codex is temporarily unavailable.
 - Runs as a self-contained executable without storing Codex credentials.
-- Includes five meter color themes and multiple refresh animations.
+- Follows the Windows light or dark system appearance without requiring a restart.
+- Includes five meter themes with matching light palettes and multiple refresh animations.
 
 ## Requirements
 
@@ -80,7 +90,8 @@ Compare the displayed SHA-256 value with the ZIP entry in `SHA256SUMS.txt`.
 
 Left-click the widget to refresh. Right-click it to refresh, change the meter
 theme or refresh animation, control the optional startup entry, open the debug
-panel, or exit. Startup is disabled by default.
+panel, or exit. Light and dark appearance is controlled automatically by
+Windows; startup is disabled by default.
 
 ## Privacy
 

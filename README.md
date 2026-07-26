@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  安静地待在 Windows 11 任务栏里，显示 Codex 剩余额度。
+  安静地待在 Windows 11 任务栏里，显示 Codex 剩余额度，并自动适应系统明暗外观。
 </p>
 
 [![CI](https://github.com/puwenfu/CodexUsageBar/actions/workflows/ci.yml/badge.svg)](https://github.com/puwenfu/CodexUsageBar/actions/workflows/ci.yml)
@@ -21,7 +21,8 @@
 ## 主题预览
 
 以下图片由真实 WPF 控件在 150% DPI 下使用示例数据确定性渲染，不是
-Windows Shell 实机截图。时间采用当前的剩余时长格式，例如 `4d 12h 56m`。
+Windows Shell 实机截图。五种仪表配色均提供匹配的浅色版本，并会随 Windows
+系统外观即时切换。时间采用当前的剩余时长格式，例如 `4d 12h 56m`。
 
 <table>
   <tr>
@@ -40,6 +41,14 @@ Windows Shell 实机截图。时间采用当前的剩余时长格式，例如 `4
       <img src="assets/codex-usage-bar-taskbar-mint.png" width="252" alt="薄荷清露主题，使用剩余时长格式">
     </td>
   </tr>
+  <tr>
+    <td align="center">
+      <img src="assets/codex-usage-bar-taskbar-forest.png" width="252" alt="青林新雨主题，使用剩余时长格式">
+    </td>
+    <td align="center">
+      <img src="assets/codex-usage-bar-taskbar-light.png" width="252" alt="自动跟随 Windows 浅色外观的沧海星澜主题">
+    </td>
+  </tr>
 </table>
 
 ## 功能
@@ -49,7 +58,8 @@ Windows Shell 实机截图。时间采用当前的剩余时长格式，例如 `4
 - 支持手动刷新，不抢占焦点，也不遮挡附近的任务栏控件。
 - Codex 暂时不可用时，保留最后一次安全数据。
 - 以独立 EXE 运行，不复制或保存 Codex 登录凭据。
-- 提供 5 种仪表色彩主题和多种刷新动画。
+- 自动跟随 Windows 系统明暗模式，系统切换后无需重启。
+- 提供 5 种带深浅配色的仪表主题和多种刷新动画。
 
 ## 运行要求
 
@@ -78,7 +88,8 @@ Get-FileHash .\CodexUsageBar_*_win-x64.zip -Algorithm SHA256
 ## 使用
 
 左键单击小组件可刷新。右键菜单可刷新、切换仪表主题或刷新动画、控制可选
-的开机启动、打开调试面板或退出。开机启动默认关闭。
+的开机启动、打开调试面板或退出。明暗外观由 Windows 自动控制，不需要单独
+设置；开机启动默认关闭。
 
 ## 隐私
 
