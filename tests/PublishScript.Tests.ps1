@@ -481,8 +481,8 @@ exit /b 37
         $readmeEn | Should Match '(?i)not affiliated with or endorsed by OpenAI'
         $readmeEn | Should Match '(?i)unsigned'
         $readmeEn | Should Match '(?is)deterministic renders of the real WPF widget at 150% DPI with\s+sample values.*not live Windows Shell screenshots'
-        $readmeEn | Should Match '6d 5h 35m'
-        $readmeZh | Should Match '6d 5h 35m'
+        $readmeEn | Should Match '4d 12h 56m'
+        $readmeZh | Should Match '4d 12h 56m'
     }
 
     It 'documents the parameterless release command and release contents' {

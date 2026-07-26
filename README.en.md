@@ -22,7 +22,7 @@
 
 These images are deterministic renders of the real WPF widget at 150% DPI with
 sample values, not live Windows Shell screenshots. Reset times use the current
-remaining-duration format, such as `6d 5h 35m`.
+remaining-duration format, such as `4d 12h 56m`.
 
 <table>
   <tr>

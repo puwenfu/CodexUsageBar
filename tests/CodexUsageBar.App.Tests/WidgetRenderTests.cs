@@ -143,12 +143,13 @@ public sealed class WidgetRenderTests
     {
         const int dpi = 144;
         var window = CreateWindow(
-            percent: 69,
+            percent: 70,
             dpi,
             widthDip: 168,
             fiveHourReset: "1h 20m",
-            weeklyReset: "6d 5h 35m",
-            themeFile);
+            weeklyReset: "4d 12h 56m",
+            themeFile,
+            weeklyPercent: 41);
 
         try
         {
@@ -159,7 +160,13 @@ public sealed class WidgetRenderTests
                 .ToArray();
             Assert.Equal(2, resetTexts.Length);
             Assert.Equal("1h 20m", NormalizeLineBreak(resetTexts[0].Text));
-            Assert.Equal("6d 5h 35m", NormalizeLineBreak(resetTexts[1].Text));
+            Assert.Equal("4d 12h 56m", NormalizeLineBreak(resetTexts[1].Text));
+            Assert.Contains(
+                FindVisualChildren<TextBlock>(window),
+                text => text.Text == "70%");
+            Assert.Contains(
+                FindVisualChildren<TextBlock>(window),
+                text => text.Text == "41%");
             Assert.All(
                 FindVisualChildren<TextBlock>(window),
                 text => Assert.False(IsTextClipped(text), $"Clipped text: {text.Text}"));
@@ -301,11 +308,12 @@ public sealed class WidgetRenderTests
         double widthDip = 168,
         string fiveHourReset = "00:35",
         string weeklyReset = "周五 18:20",
-        string themeFile = "QuotaTheme.xaml")
+        string themeFile = "QuotaTheme.xaml",
+        int? weeklyPercent = null)
     {
         var display = new WidgetDisplayModel(
             new QuotaDisplayWindow($"{percent}%", "5h", fiveHourReset, 1),
-            new QuotaDisplayWindow($"{percent}%", "周", weeklyReset, 1),
+            new QuotaDisplayWindow($"{weeklyPercent ?? percent}%", "周", weeklyReset, 1),
             "quota details",
             IsRefreshing: false,
             IsStale: false);
