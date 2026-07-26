@@ -52,6 +52,24 @@ Reset times use the current remaining-duration format, such as `4d 12h 56m`.
   </tr>
 </table>
 
+## Interface preview
+
+Right-click the taskbar widget to open its settings. The main menu and the
+Theme Color submenu follow the Windows light or dark system appearance.
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="assets/codex-usage-bar-menu-dark.png" width="360" alt="Widget, right-click menu, and Theme Color submenu in the dark appearance">
+      <br><strong>Dark appearance</strong>
+    </td>
+    <td align="center">
+      <img src="assets/codex-usage-bar-menu-light.png" width="360" alt="Widget, right-click menu, and Theme Color submenu in the light appearance">
+      <br><strong>Light appearance</strong>
+    </td>
+  </tr>
+</table>
+
 ## Features
 
 - Shows remaining five-hour and weekly Codex allowance with reset countdowns.

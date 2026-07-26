@@ -51,6 +51,24 @@ Windows Shell 实机截图。五种仪表配色均提供匹配的浅色版本，
   </tr>
 </table>
 
+## 操作界面预览
+
+右键单击任务栏小组件即可打开设置。主菜单与“主题颜色”子菜单会跟随
+Windows 系统明暗外观同步切换。
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="assets/codex-usage-bar-menu-dark.png" width="360" alt="深色外观下的小组件、右键主菜单与主题颜色子菜单">
+      <br><strong>深色外观</strong>
+    </td>
+    <td align="center">
+      <img src="assets/codex-usage-bar-menu-light.png" width="360" alt="浅色外观下的小组件、右键主菜单与主题颜色子菜单">
+      <br><strong>浅色外观</strong>
+    </td>
+  </tr>
+</table>
+
 ## 功能
 
 - 显示 Codex 五小时与每周额度的剩余比例和恢复倒计时。
