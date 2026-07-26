@@ -358,7 +358,7 @@ exit /b 0
 }
 
 Describe 'release documentation and local build contracts' {
-    It 'defines a pinned Windows CI workflow through the final release candidate' {
+    It 'validates every CI run and packages only manual workflow dispatches' {
         $workflowPath = Join-Path $sourceProjectRoot '.github/workflows/ci.yml'
         Test-Path -LiteralPath $workflowPath -PathType Leaf | Should Be $true
 
@@ -372,9 +372,15 @@ Describe 'release documentation and local build contracts' {
         $workflow | Should Match 'dotnet test CodexUsageBar\.sln --configuration Release --no-build'
         $workflow | Should Match 'PublishSupport\.Tests\.ps1'
         $workflow | Should Match 'PublishScript\.Tests\.ps1'
+        $workflow | Should Match 'Validate release inputs'
+        $workflow | Should Match '\.\\scripts\\publish\.ps1 -WhatIfValidation'
         $workflow | Should Match 'Build release candidate'
         $workflow | Should Match '\.\\scripts\\publish\.ps1'
         $workflow | Should Match 'dist/\*/\*_win-x64\.zip'
+        ([regex]::Matches(
+            $workflow,
+            '(?m)^\s+if:\s+github\.event_name == ''workflow_dispatch''\s*$'
+        )).Count | Should Be 2
     }
 
     It 'preserves the WPF assembly identity in the exact dotnet publish arguments' {
