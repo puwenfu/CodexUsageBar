@@ -36,8 +36,12 @@ public sealed class ReadmeInterfacePreviewRenderTests
         try
         {
             window.ApplySystemTheme(systemTheme);
+            WidgetWindow.ReplaceTheme(
+                window.Resources,
+                WidgetWindow.ResolveThemeResourceName("QuotaTheme.xaml", systemTheme));
             ShowOffscreen(window);
 
+            Assert.IsType<LinearGradientBrush>(window.FindResource("QuotaProgressBrush"));
             var widget = Render(window, dpi);
             var menu = Assert.IsType<ContextMenu>(window.WidgetRoot.ContextMenu);
             menu.Resources.MergedDictionaries.Add(CreateMenuResources(systemTheme));
@@ -74,7 +78,7 @@ public sealed class ReadmeInterfacePreviewRenderTests
             Assert.True(submenuBitmap.PixelWidth > 0);
             Assert.True(submenuBitmap.PixelHeight > 0);
             Assert.Equal(750, preview.PixelWidth);
-            Assert.Equal(600, preview.PixelHeight);
+            Assert.Equal(500, preview.PixelHeight);
             Save(preview, fileName);
         }
         finally
@@ -180,15 +184,22 @@ public sealed class ReadmeInterfacePreviewRenderTests
         int dpi)
     {
         const double width = 480;
-        const double height = 384;
+        const double height = 320;
         const double taskbarHeight = 48;
+        const double menuChromeMargin = 12;
         const double menuX = 18;
-        const double menuY = 8;
         var menuSize = ToDipSize(menu);
         var submenuSize = ToDipSize(submenu);
         var widgetSize = ToDipSize(widget);
-        var submenuX = menuX + menuSize.Width - 12;
+        var taskbarTop = height - taskbarHeight;
+        var onePhysicalPixelDip = 96d / dpi;
+        var menuY =
+            taskbarTop - menuSize.Height + menuChromeMargin - onePhysicalPixelDip;
+        var submenuX = menuX + menuSize.Width - menuChromeMargin;
         var submenuY = Math.Max(8, menuY + themeItemOffsetY - 12);
+        var visibleMenuBottom = menuY + menuSize.Height - menuChromeMargin;
+
+        Assert.Equal(taskbarTop - onePhysicalPixelDip, visibleMenuBottom, precision: 6);
 
         var bitmap = new RenderTargetBitmap(
             (int)Math.Ceiling(width * dpi / 96d),
