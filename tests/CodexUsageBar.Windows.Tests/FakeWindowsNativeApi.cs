@@ -44,12 +44,6 @@ internal sealed class FakeWindowsNativeApi : IWindowsNativeApi
 
     public bool WindowCloaked { get; set; }
 
-    public bool ScreenToClientSucceeds { get; set; } = true;
-
-    public int ClientOffsetX { get; set; }
-
-    public int ClientOffsetY { get; set; }
-
     public bool SetWindowPositionSucceeds { get; set; } = true;
 
     public int SetWindowPositionCallCount { get; private set; }
@@ -59,6 +53,14 @@ internal sealed class FakeWindowsNativeApi : IWindowsNativeApi
     public uint LastWindowPositionFlags { get; private set; }
 
     public int ShowWindowCallCount { get; private set; }
+
+    public Dictionary<uint, IReadOnlyList<nint>> TopLevelWindowsByProcessId { get; } = [];
+
+    public Dictionary<nint, PhysicalRect> WindowRectangles { get; } = [];
+
+    public Dictionary<nint, nint> WindowAboveByWindow { get; } = [];
+
+    public List<nint> WindowParentTargets { get; } = [];
 
     public List<string> FindWindowClassNames { get; } = [];
 
@@ -73,9 +75,14 @@ internal sealed class FakeWindowsNativeApi : IWindowsNativeApi
         return WindowHandle;
     }
 
+    public IReadOnlyList<nint> EnumerateTopLevelWindows(uint processId) =>
+        TopLevelWindowsByProcessId.TryGetValue(processId, out var windows)
+            ? windows
+            : [];
+
     public bool TryGetWindowRectangle(nint windowHandle, out PhysicalRect rectangle)
     {
-        rectangle = AppBarRectangle;
+        rectangle = WindowRectangles.GetValueOrDefault(windowHandle, AppBarRectangle);
         return true;
     }
 
@@ -135,6 +142,7 @@ internal sealed class FakeWindowsNativeApi : IWindowsNativeApi
     public bool TrySetWindowParent(nint windowHandle, nint parentWindowHandle)
     {
         WindowStyleThreadIds.Enqueue(Environment.CurrentManagedThreadId);
+        WindowParentTargets.Add(parentWindowHandle);
         if (SetWindowParentSucceeds)
         {
             WindowParent = parentWindowHandle;
@@ -143,19 +151,8 @@ internal sealed class FakeWindowsNativeApi : IWindowsNativeApi
         return SetWindowParentSucceeds;
     }
 
-    public nint GetWindowParent(nint windowHandle) => WindowParent;
-
-    public bool TryScreenToClient(
-        nint windowHandle,
-        int screenX,
-        int screenY,
-        out int clientX,
-        out int clientY)
-    {
-        clientX = screenX - AppBarRectangle.Left + ClientOffsetX;
-        clientY = screenY - AppBarRectangle.Top + ClientOffsetY;
-        return ScreenToClientSucceeds;
-    }
+    public nint GetWindowAbove(nint windowHandle) =>
+        WindowAboveByWindow.GetValueOrDefault(windowHandle);
 
     public bool TrySetWindowPosition(
         nint windowHandle,
@@ -164,10 +161,13 @@ internal sealed class FakeWindowsNativeApi : IWindowsNativeApi
         uint flags)
     {
         SetWindowPositionCallCount++;
+        LastWindowInsertAfter = insertAfter;
         LastWindowPosition = bounds;
         LastWindowPositionFlags = flags;
         return SetWindowPositionSucceeds;
     }
+
+    public nint LastWindowInsertAfter { get; private set; }
 
     public void ShowWindowWithoutActivation(nint windowHandle)
     {

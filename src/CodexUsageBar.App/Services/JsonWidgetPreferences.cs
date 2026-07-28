@@ -9,7 +9,11 @@ internal sealed class JsonWidgetPreferences : IWidgetPreferences
     private readonly string _settingsPath;
     private readonly IDiagnosticLogger _logger;
     private bool _hideFiveHourQuota;
+    private QuotaColorTheme _colorTheme;
     private RefreshAnimationStyle _refreshAnimationStyle;
+    private WidgetPlacementPreference _placementPreference;
+    private double _taskbarHorizontalOffsetDip;
+    private double _codexSidebarHorizontalOffsetDip;
 
     public JsonWidgetPreferences(IDiagnosticLogger logger)
         : this(
@@ -28,7 +32,11 @@ internal sealed class JsonWidgetPreferences : IWidgetPreferences
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         var stored = TryLoad();
         _hideFiveHourQuota = stored.HideFiveHourQuota;
+        _colorTheme = stored.ColorTheme;
         _refreshAnimationStyle = stored.RefreshAnimationStyle;
+        _placementPreference = stored.PlacementPreference;
+        _taskbarHorizontalOffsetDip = stored.TaskbarHorizontalOffsetDip;
+        _codexSidebarHorizontalOffsetDip = stored.CodexSidebarHorizontalOffsetDip;
     }
 
     public bool HideFiveHourQuota
@@ -42,6 +50,21 @@ internal sealed class JsonWidgetPreferences : IWidgetPreferences
             }
 
             _hideFiveHourQuota = value;
+            TrySave();
+        }
+    }
+
+    public QuotaColorTheme ColorTheme
+    {
+        get => _colorTheme;
+        set
+        {
+            if (_colorTheme == value || !Enum.IsDefined(value))
+            {
+                return;
+            }
+
+            _colorTheme = value;
             TrySave();
         }
     }
@@ -61,6 +84,53 @@ internal sealed class JsonWidgetPreferences : IWidgetPreferences
         }
     }
 
+    public WidgetPlacementPreference PlacementPreference
+    {
+        get => _placementPreference;
+        set
+        {
+            if (_placementPreference == value || !Enum.IsDefined(value))
+            {
+                return;
+            }
+
+            _placementPreference = value;
+            TrySave();
+        }
+    }
+
+    public double TaskbarHorizontalOffsetDip
+    {
+        get => _taskbarHorizontalOffsetDip;
+        set
+        {
+            var normalized = WidgetHorizontalOffset.Normalize(value);
+            if (_taskbarHorizontalOffsetDip == normalized)
+            {
+                return;
+            }
+
+            _taskbarHorizontalOffsetDip = normalized;
+            TrySave();
+        }
+    }
+
+    public double CodexSidebarHorizontalOffsetDip
+    {
+        get => _codexSidebarHorizontalOffsetDip;
+        set
+        {
+            var normalized = WidgetHorizontalOffset.Normalize(value);
+            if (_codexSidebarHorizontalOffsetDip == normalized)
+            {
+                return;
+            }
+
+            _codexSidebarHorizontalOffsetDip = normalized;
+            TrySave();
+        }
+    }
+
     private LoadedPreferences TryLoad()
     {
         if (!File.Exists(_settingsPath))
@@ -76,7 +146,11 @@ internal sealed class JsonWidgetPreferences : IWidgetPreferences
                 ? LoadedPreferences.Default
                 : new LoadedPreferences(
                     stored.HideFiveHourQuota,
-                    ParseRefreshAnimationStyle(stored.RefreshAnimationStyle));
+                    ParseColorTheme(stored.ColorTheme),
+                    ParseRefreshAnimationStyle(stored.RefreshAnimationStyle),
+                    ParsePlacementPreference(stored.PlacementPreference),
+                    WidgetHorizontalOffset.Normalize(stored.TaskbarHorizontalOffsetDip ?? 0d),
+                    WidgetHorizontalOffset.Normalize(stored.CodexSidebarHorizontalOffsetDip ?? 0d));
         }
         catch (Exception exception) when (
             exception is IOException or UnauthorizedAccessException or JsonException)
@@ -95,7 +169,11 @@ internal sealed class JsonWidgetPreferences : IWidgetPreferences
             var json = JsonSerializer.Serialize(
                 new StoredPreferences(
                     _hideFiveHourQuota,
-                    _refreshAnimationStyle.ToString()));
+                    _colorTheme.ToString(),
+                    _refreshAnimationStyle.ToString(),
+                    _placementPreference.ToString(),
+                    _taskbarHorizontalOffsetDip,
+                    _codexSidebarHorizontalOffsetDip));
             File.WriteAllText(temporaryPath, json);
             File.Move(temporaryPath, _settingsPath, overwrite: true);
         }
@@ -130,15 +208,41 @@ internal sealed class JsonWidgetPreferences : IWidgetPreferences
             ? parsed
             : RefreshAnimationStyle.ProgressRing;
 
+    private static QuotaColorTheme ParseColorTheme(string? value) =>
+        Enum.TryParse<QuotaColorTheme>(value, ignoreCase: false, out var parsed)
+        && Enum.IsDefined(parsed)
+            ? parsed
+            : QuotaColorTheme.Blue;
+
+    private static WidgetPlacementPreference ParsePlacementPreference(string? value) =>
+        Enum.TryParse<WidgetPlacementPreference>(value, ignoreCase: false, out var parsed)
+        && Enum.IsDefined(parsed)
+            ? parsed
+            : WidgetPlacementPreference.Automatic;
+
     private sealed record StoredPreferences(
         bool HideFiveHourQuota,
-        string? RefreshAnimationStyle = null);
+        string? ColorTheme = null,
+        string? RefreshAnimationStyle = null,
+        string? PlacementPreference = null,
+        double? TaskbarHorizontalOffsetDip = null,
+        double? CodexSidebarHorizontalOffsetDip = null);
 
     private sealed record LoadedPreferences(
         bool HideFiveHourQuota,
-        RefreshAnimationStyle RefreshAnimationStyle)
+        QuotaColorTheme ColorTheme,
+        RefreshAnimationStyle RefreshAnimationStyle,
+        WidgetPlacementPreference PlacementPreference,
+        double TaskbarHorizontalOffsetDip,
+        double CodexSidebarHorizontalOffsetDip)
     {
         public static LoadedPreferences Default { get; } =
-            new(false, RefreshAnimationStyle.ProgressRing);
+            new(
+                false,
+                QuotaColorTheme.Blue,
+                RefreshAnimationStyle.ProgressRing,
+                WidgetPlacementPreference.Automatic,
+                0d,
+                0d);
     }
 }

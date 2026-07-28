@@ -519,7 +519,7 @@ exit /b 37
 
         $versionNodes.Count | Should Be 1
         $releasedHeadings.Count | Should BeGreaterThan 0
-        $versionNodes[0].InnerText | Should Be '1.3.0'
+        $versionNodes[0].InnerText | Should Be '1.4.0'
         $releasedHeadings[0].Groups[1].Value |
             Should BeExactly $versionNodes[0].InnerText
         $changelog | Should Match '\[1\.2\.5\]\s+-\s+2026-07-26'

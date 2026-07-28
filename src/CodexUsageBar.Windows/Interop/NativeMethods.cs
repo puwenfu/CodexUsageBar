@@ -10,27 +10,64 @@ internal static class NativeMethods
     internal const uint ABE_BOTTOM = 3;
     internal const int GWL_STYLE = -16;
     internal const int GWL_EXSTYLE = -20;
+    internal const uint GW_HWNDPREV = 3;
     internal const long WS_CHILD = 0x40000000L;
     internal const long WS_POPUP = 0x80000000L;
     internal const long WS_EX_TOOLWINDOW = 0x00000080L;
     internal const long WS_EX_APPWINDOW = 0x00040000L;
     internal const long WS_EX_NOACTIVATE = 0x08000000L;
     internal static readonly nint HWND_TOP = nint.Zero;
+    internal static readonly nint HWND_TOPMOST = new(-1);
+    internal static readonly nint HWND_NOTOPMOST = new(-2);
     internal const uint SWP_NOMOVE = 0x0002;
     internal const uint SWP_NOSIZE = 0x0001;
     internal const uint SWP_NOACTIVATE = 0x0010;
     internal const uint SWP_SHOWWINDOW = 0x0040;
+    internal const uint SWP_FRAMECHANGED = 0x0020;
     internal const int WM_MOUSEACTIVATE = 0x0021;
     internal const int MA_NOACTIVATE = 3;
     internal const int WM_DPICHANGED = 0x02E0;
     internal const int WM_DISPLAYCHANGE = 0x007E;
     internal const int WM_SETTINGCHANGE = 0x001A;
+    internal const int WM_NULL = 0x0000;
+    internal const int WM_CONTEXTMENU = 0x007B;
+    internal const int WM_LBUTTONDOWN = 0x0201;
+    internal const int WM_RBUTTONDOWN = 0x0204;
+    internal const int WM_RBUTTONUP = 0x0205;
+    internal const int WM_MBUTTONDOWN = 0x0207;
+    internal const int WM_XBUTTONDOWN = 0x020B;
+    internal const int WM_APP = 0x8000;
+    internal const int WH_MOUSE_LL = 14;
+    internal const uint NIM_ADD = 0x00000000;
+    internal const uint NIM_DELETE = 0x00000002;
+    internal const uint NIM_SETVERSION = 0x00000004;
+    internal const uint NOTIFYICON_VERSION_4 = 4;
+    internal const uint NIF_MESSAGE = 0x00000001;
+    internal const uint NIF_ICON = 0x00000002;
+    internal const uint NIF_TIP = 0x00000004;
+    internal static readonly nint IDI_APPLICATION = new(32512);
     internal const uint MONITOR_DEFAULTTONEAREST = 0x00000002;
     internal const int SW_SHOWNOACTIVATE = 4;
     internal const int DWMWA_CLOAKED = 14;
 
+    internal delegate bool EnumWindowsProcedure(nint windowHandle, nint lParam);
+
+    internal delegate nint LowLevelMouseProcedure(
+        int code,
+        nint wParam,
+        nint lParam);
+
     [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     internal static extern nint FindWindow(string? lpClassName, string? lpWindowName);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool EnumWindows(EnumWindowsProcedure callback, nint lParam);
+
+    [DllImport("user32.dll")]
+    internal static extern uint GetWindowThreadProcessId(
+        nint windowHandle,
+        out uint processId);
 
     [DllImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -52,7 +89,7 @@ internal static class NativeMethods
     internal static extern nint SetParent(nint hWndChild, nint hWndNewParent);
 
     [DllImport("user32.dll")]
-    internal static extern nint GetParent(nint hWnd);
+    internal static extern nint GetWindow(nint hWnd, uint uCmd);
 
     [DllImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -71,10 +108,6 @@ internal static class NativeMethods
     [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     internal static extern bool GetMonitorInfo(nint hMonitor, ref MONITORINFO lpmi);
-
-    [DllImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    internal static extern bool ScreenToClient(nint hWnd, ref POINT lpPoint);
 
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -102,6 +135,46 @@ internal static class NativeMethods
     [DllImport("shell32.dll", SetLastError = true)]
     internal static extern nuint SHAppBarMessage(uint dwMessage, ref APPBARDATA pData);
 
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool Shell_NotifyIcon(uint dwMessage, ref NOTIFYICONDATA lpData);
+
+    [DllImport("user32.dll")]
+    internal static extern nint LoadIcon(nint hInstance, nint lpIconName);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool SetForegroundWindow(nint hWnd);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool PostMessage(
+        nint hWnd,
+        int msg,
+        nint wParam,
+        nint lParam);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    internal static extern nint SetWindowsHookEx(
+        int idHook,
+        LowLevelMouseProcedure callback,
+        nint moduleHandle,
+        uint threadId);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool UnhookWindowsHookEx(nint hookHandle);
+
+    [DllImport("user32.dll")]
+    internal static extern nint CallNextHookEx(
+        nint hookHandle,
+        int code,
+        nint wParam,
+        nint lParam);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+    internal static extern nint GetModuleHandle(string? lpModuleName);
+
     [StructLayout(LayoutKind.Sequential)]
     internal struct RECT
     {
@@ -119,6 +192,16 @@ internal static class NativeMethods
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    internal struct MSLLHOOKSTRUCT
+    {
+        internal POINT Point;
+        internal uint MouseData;
+        internal uint Flags;
+        internal uint Time;
+        internal nuint ExtraInfo;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     internal struct APPBARDATA
     {
         internal uint cbSize;
@@ -127,6 +210,35 @@ internal static class NativeMethods
         internal uint uEdge;
         internal RECT rc;
         internal nint lParam;
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    internal struct NOTIFYICONDATA
+    {
+        internal uint cbSize;
+        internal nint hWnd;
+        internal uint uID;
+        internal uint uFlags;
+        internal uint uCallbackMessage;
+        internal nint hIcon;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+        internal string szTip;
+
+        internal uint dwState;
+        internal uint dwStateMask;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
+        internal string szInfo;
+
+        internal uint uTimeoutOrVersion;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 64)]
+        internal string szInfoTitle;
+
+        internal uint dwInfoFlags;
+        internal Guid guidItem;
+        internal nint hBalloonIcon;
     }
 
     [StructLayout(LayoutKind.Sequential)]

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-07-28
+### Added
+- Added a persistent system-tray entry and display-position controls for the taskbar, Codex sidebar, or tray-only use.
+- Added independent horizontal-position adjustment for taskbar and Codex-sidebar placement.
+
+### Changed
+- Persisted the selected meter theme and placement preferences across restarts.
+- Improved automatic placement fallback when the preferred taskbar or Codex surface is unavailable.
+
+### Fixed
+- Made the right-click menu close reliably after clicking anywhere outside it while keeping submenu interaction intact.
+- Kept startup controls usable when Windows denies access, and refined menu icons, selection states, and panel positioning.
+
 ## [1.3.0] - 2026-07-27
 ### Added
 - Added automatic light and dark appearance switching that follows the Windows system theme.

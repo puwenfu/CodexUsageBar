@@ -27,7 +27,9 @@ public sealed class TaskbarWindowHost : IDisposable
     private int _windowLossTaskbarCandidateObservations;
     private int _taskbarCreatedMessage;
     private bool _desiredVisibility = true;
+    private bool _isActive = true;
     private bool? _reportedVisibility;
+    private TaskbarPlacement? _placementOverride;
     private bool _isDisposed;
 
     public TaskbarWindowHost()
@@ -57,6 +59,61 @@ public sealed class TaskbarWindowHost : IDisposable
 
     public void Attach(Window window)
     {
+        AttachCore(window, activateImmediately: true);
+    }
+
+    public void AttachInactive(Window window)
+    {
+        AttachCore(window, activateImmediately: false);
+    }
+
+    public bool Activate(TaskbarPlacement placement)
+    {
+        ArgumentNullException.ThrowIfNull(placement);
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        var window = _window;
+        if (window is null)
+        {
+            return false;
+        }
+
+        window.Dispatcher.VerifyAccess();
+        _placementOverride = placement;
+        _isActive = true;
+        return Relocate();
+    }
+
+    public bool ActivateDefault()
+    {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        var window = _window;
+        if (window is null)
+        {
+            return false;
+        }
+
+        window.Dispatcher.VerifyAccess();
+        _placementOverride = null;
+        _isActive = true;
+        return Relocate();
+    }
+
+    public void Deactivate()
+    {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        var window = _window;
+        if (window is null)
+        {
+            return;
+        }
+
+        window.Dispatcher.VerifyAccess();
+        _isActive = false;
+        SetWindowVisible(false);
+    }
+
+    private void AttachCore(Window window, bool activateImmediately)
+    {
         ArgumentNullException.ThrowIfNull(window);
         ObjectDisposedException.ThrowIf(_isDisposed, this);
         if (_window is not null)
@@ -65,6 +122,7 @@ public sealed class TaskbarWindowHost : IDisposable
         }
 
         window.Dispatcher.VerifyAccess();
+        _isActive = activateImmediately;
         _window = window;
         window.ShowActivated = false;
         window.ShowInTaskbar = false;
@@ -77,14 +135,17 @@ public sealed class TaskbarWindowHost : IDisposable
             InitializeWindowSource();
         }
 
-        _ = Relocate();
+        if (activateImmediately)
+        {
+            _ = Relocate();
+        }
     }
 
     public bool Relocate()
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
         var window = _window;
-        if (window is null || _windowHandle == 0)
+        if (window is null || _windowHandle == 0 || !_isActive)
         {
             return false;
         }
@@ -113,7 +174,9 @@ public sealed class TaskbarWindowHost : IDisposable
         TaskbarPlacement placement;
         try
         {
-            placement = TaskbarPlacementCalculator.Calculate(taskbar.Rectangle, taskbar.Dpi);
+            placement = IsPlacementValidForTaskbar(_placementOverride, taskbar)
+                ? _placementOverride!
+                : TaskbarPlacementCalculator.Calculate(taskbar.Rectangle, taskbar.Dpi);
         }
         catch (ArgumentOutOfRangeException)
         {
@@ -126,8 +189,7 @@ public sealed class TaskbarWindowHost : IDisposable
 
         if (!TaskbarWindowStyleApplier.TryApply(
                 _nativeApi,
-                _windowHandle,
-                taskbar.WindowHandle))
+                _windowHandle))
         {
             ResetTaskbarAttachmentState();
             SetWindowVisible(false);
@@ -138,34 +200,22 @@ public sealed class TaskbarWindowHost : IDisposable
 
         if (!TaskbarWindowStyleApplier.TryApply(
                 _nativeApi,
-                _windowHandle,
-                taskbar.WindowHandle))
+                _windowHandle))
         {
             ResetTaskbarAttachmentState();
             SetWindowVisible(false);
             return false;
         }
 
-        if (!_nativeApi.TryScreenToClient(
-                taskbar.WindowHandle,
-                placement.LeftPhysicalPixel,
-                placement.TopPhysicalPixel,
-                out var clientLeft,
-                out var clientTop))
-        {
-            ResetTaskbarAttachmentState();
-            SetWindowVisible(false);
-            return false;
-        }
-
-        var clientBounds = TaskbarWindowPolicy.ToTaskbarClientBounds(
-            placement,
-            clientLeft,
-            clientTop);
+        var screenBounds = new PhysicalRect(
+            placement.LeftPhysicalPixel,
+            placement.TopPhysicalPixel,
+            placement.RightPhysicalPixel,
+            placement.BottomPhysicalPixel);
         var positioned = _nativeApi.TrySetWindowPosition(
             _windowHandle,
-            NativeMethods.HWND_TOP,
-            clientBounds,
+            NativeMethods.HWND_TOPMOST,
+            screenBounds,
             TaskbarWindowPolicy.PositionFlags);
         if (!positioned)
         {
@@ -247,7 +297,7 @@ public sealed class TaskbarWindowHost : IDisposable
     internal void RecoverWindow()
     {
         var window = _window;
-        if (_isDisposed || window is null || _windowHandle == 0)
+        if (_isDisposed || window is null || _windowHandle == 0 || !_isActive)
         {
             return;
         }
@@ -321,7 +371,7 @@ public sealed class TaskbarWindowHost : IDisposable
 
         _ = _nativeApi.TrySetWindowPosition(
             _windowHandle,
-            NativeMethods.HWND_TOP,
+            NativeMethods.HWND_TOPMOST,
             default,
             TaskbarWindowPolicy.WindowRecoveryPositionFlags);
     }
@@ -406,6 +456,10 @@ public sealed class TaskbarWindowHost : IDisposable
         }
 
         _desiredVisibility = isVisible;
+        if (!_isActive)
+        {
+            return;
+        }
         if (isVisible)
         {
             _ = Relocate();
@@ -436,6 +490,17 @@ public sealed class TaskbarWindowHost : IDisposable
             window.Hide();
         }
 
+        if (!isVisible && _windowHandle != 0)
+        {
+            _ = _nativeApi.TrySetWindowPosition(
+                _windowHandle,
+                NativeMethods.HWND_NOTOPMOST,
+                default,
+                NativeMethods.SWP_NOMOVE |
+                NativeMethods.SWP_NOSIZE |
+                NativeMethods.SWP_NOACTIVATE);
+        }
+
         if (_reportedVisibility != isVisible)
         {
             _reportedVisibility = isVisible;
@@ -458,6 +523,7 @@ public sealed class TaskbarWindowHost : IDisposable
 
         _window = null;
         _windowHandle = 0;
+        _placementOverride = null;
         _lastAttachedTaskbarHandle = 0;
         _observedTaskbar = null;
         ResetWindowLossObservation();
@@ -467,8 +533,16 @@ public sealed class TaskbarWindowHost : IDisposable
     private bool NeedsRelocation(TaskbarInfo taskbar) =>
         _attachedTaskbarHandle != taskbar.WindowHandle ||
         _lastTaskbarRectangle != taskbar.Rectangle ||
-        _lastTaskbarDpi != taskbar.Dpi ||
-        _nativeApi.GetWindowParent(_windowHandle) != taskbar.WindowHandle;
+        _lastTaskbarDpi != taskbar.Dpi;
+
+    private static bool IsPlacementValidForTaskbar(
+        TaskbarPlacement? placement,
+        TaskbarInfo taskbar) =>
+        placement is not null &&
+        placement.LeftPhysicalPixel >= taskbar.Rectangle.Left &&
+        placement.RightPhysicalPixel <= taskbar.Rectangle.Right &&
+        placement.TopPhysicalPixel == taskbar.Rectangle.Top &&
+        placement.BottomPhysicalPixel == taskbar.Rectangle.Bottom;
 
     private void ResetTaskbarAttachmentState()
     {

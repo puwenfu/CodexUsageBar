@@ -11,6 +11,23 @@ public static class TaskbarPlacementCalculator
         uint dpi,
         double desiredWidthDip = 168)
     {
+        var leftPhysicalPixel = ClampToRect(
+            taskbarRect.Left + (long)LeftInsetPhysicalPixels,
+            taskbarRect.Left,
+            taskbarRect.Right);
+        return CalculateAtPhysicalLeft(
+            taskbarRect,
+            dpi,
+            leftPhysicalPixel,
+            desiredWidthDip);
+    }
+
+    public static TaskbarPlacement CalculateAtPhysicalLeft(
+        PhysicalRect taskbarRect,
+        uint dpi,
+        int leftPhysicalPixel,
+        double desiredWidthDip = 168)
+    {
         if (dpi == 0)
         {
             throw new ArgumentOutOfRangeException(nameof(dpi), dpi, "DPI must be greater than zero.");
@@ -26,8 +43,15 @@ public static class TaskbarPlacementCalculator
             throw new ArgumentOutOfRangeException(nameof(desiredWidthDip), desiredWidthDip, "Desired width must be finite and greater than zero.");
         }
 
+        if (leftPhysicalPixel < taskbarRect.Left || leftPhysicalPixel > taskbarRect.Right)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(leftPhysicalPixel),
+                leftPhysicalPixel,
+                "Left position must be inside the taskbar rectangle.");
+        }
+
         var scale = dpi / 96d;
-        var leftPhysicalPixel = ClampToRect(taskbarRect.Left + (long)LeftInsetPhysicalPixels, taskbarRect.Left, taskbarRect.Right);
         var topPhysicalPixel = taskbarRect.Top;
         var availableWidthDip = (taskbarRect.Right - leftPhysicalPixel) / scale;
         var widthDip = Math.Min(desiredWidthDip, Math.Max(0, availableWidthDip));

@@ -4,7 +4,7 @@
         xmlns:controls="clr-namespace:CodexUsageBar.App.Controls"
         Title="Codex Usage"
         Width="168"
-        MinWidth="150"
+        MinWidth="1"
         MaxWidth="180"
         WindowStyle="None"
         AllowsTransparency="True"
@@ -12,7 +12,7 @@
         ShowActivated="False"
         ResizeMode="NoResize"
         Topmost="False"
-        Background="{DynamicResource WidgetBackgroundBrush}"
+        Background="Transparent"
         FontFamily="{DynamicResource WidgetFontFamily}"
         SnapsToDevicePixels="True"
         UseLayoutRounding="True">
@@ -27,7 +27,7 @@
     </Window.Resources>
 
     <Grid x:Name="WidgetRoot"
-          Background="{DynamicResource WidgetBackgroundBrush}"
+          Background="Transparent"
           ClipToBounds="True"
           PreviewMouseLeftButtonDown="OnPreviewMouseLeftButtonDown">
         <Grid.ToolTip>
@@ -37,7 +37,9 @@
         </Grid.ToolTip>
         <Grid.ContextMenu>
             <ContextMenu Style="{StaticResource CodexContextMenuStyle}"
-                         Opened="OnContextMenuOpened">
+                         StaysOpen="False"
+                         Opened="OnContextMenuOpened"
+                         Closed="OnContextMenuClosed">
                 <MenuItem Header="立即刷新"
                           controls:MenuChrome.IsRootItem="True"
                           Style="{StaticResource CodexMenuItemStyle}"
@@ -63,11 +65,14 @@
                               Style="{StaticResource CodexMenuItemStyle}"
                               Click="OnThemeBlueClick">
                         <MenuItem.Icon>
-                            <Ellipse Width="11.7"
-                                     Height="11.7"
-                                     Fill="{x:Null}"
-                                     Stroke="{StaticResource ThemeBluePreviewBrush}"
-                                     StrokeThickness="1.35" />
+                            <Grid Width="11.7"
+                                  Height="11.7">
+                                <Ellipse Stroke="{DynamicResource QuotaTrackBrush}"
+                                         StrokeThickness="1.35" />
+                                <controls:ProgressArc Progress="85"
+                                                      Stroke="{StaticResource ThemeBluePreviewBrush}"
+                                                      StrokeThickness="1.35" />
+                            </Grid>
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem x:Name="ThemePurpleMenuItem"
@@ -79,11 +84,14 @@
                               Style="{StaticResource CodexMenuItemStyle}"
                               Click="OnThemePurpleClick">
                         <MenuItem.Icon>
-                            <Ellipse Width="11.7"
-                                     Height="11.7"
-                                     Fill="{x:Null}"
-                                     Stroke="{StaticResource ThemePurplePreviewBrush}"
-                                     StrokeThickness="1.35" />
+                            <Grid Width="11.7"
+                                  Height="11.7">
+                                <Ellipse Stroke="{DynamicResource QuotaTrackBrush}"
+                                         StrokeThickness="1.35" />
+                                <controls:ProgressArc Progress="85"
+                                                      Stroke="{StaticResource ThemePurplePreviewBrush}"
+                                                      StrokeThickness="1.35" />
+                            </Grid>
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem x:Name="ThemeRoseMenuItem"
@@ -95,11 +103,14 @@
                               Style="{StaticResource CodexMenuItemStyle}"
                               Click="OnThemeRoseClick">
                         <MenuItem.Icon>
-                            <Ellipse Width="11.7"
-                                     Height="11.7"
-                                     Fill="{x:Null}"
-                                     Stroke="{StaticResource ThemeRosePreviewBrush}"
-                                     StrokeThickness="1.35" />
+                            <Grid Width="11.7"
+                                  Height="11.7">
+                                <Ellipse Stroke="{DynamicResource QuotaTrackBrush}"
+                                         StrokeThickness="1.35" />
+                                <controls:ProgressArc Progress="85"
+                                                      Stroke="{StaticResource ThemeRosePreviewBrush}"
+                                                      StrokeThickness="1.35" />
+                            </Grid>
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem x:Name="ThemeMintMenuItem"
@@ -111,11 +122,14 @@
                               Style="{StaticResource CodexMenuItemStyle}"
                               Click="OnThemeMintClick">
                         <MenuItem.Icon>
-                            <Ellipse Width="11.7"
-                                     Height="11.7"
-                                     Fill="{x:Null}"
-                                     Stroke="{StaticResource ThemeMintPreviewBrush}"
-                                     StrokeThickness="1.35" />
+                            <Grid Width="11.7"
+                                  Height="11.7">
+                                <Ellipse Stroke="{DynamicResource QuotaTrackBrush}"
+                                         StrokeThickness="1.35" />
+                                <controls:ProgressArc Progress="85"
+                                                      Stroke="{StaticResource ThemeMintPreviewBrush}"
+                                                      StrokeThickness="1.35" />
+                            </Grid>
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem x:Name="ThemeForestMenuItem"
@@ -127,11 +141,14 @@
                               Style="{StaticResource CodexMenuItemStyle}"
                               Click="OnThemeForestClick">
                         <MenuItem.Icon>
-                            <Ellipse Width="11.7"
-                                     Height="11.7"
-                                     Fill="{x:Null}"
-                                     Stroke="{StaticResource ThemeForestPreviewBrush}"
-                                     StrokeThickness="1.35" />
+                            <Grid Width="11.7"
+                                  Height="11.7">
+                                <Ellipse Stroke="{DynamicResource QuotaTrackBrush}"
+                                         StrokeThickness="1.35" />
+                                <controls:ProgressArc Progress="85"
+                                                      Stroke="{StaticResource ThemeForestPreviewBrush}"
+                                                      StrokeThickness="1.35" />
+                            </Grid>
                         </MenuItem.Icon>
                     </MenuItem>
                 </MenuItem>
@@ -163,6 +180,16 @@
                               Padding="{StaticResource ContextSubmenuItemPadding}"
                               Style="{StaticResource CodexMenuItemStyle}"
                               Click="OnRefreshDotOrbitClick" />
+                </MenuItem>
+                <MenuItem x:Name="PositionSettingsMenuItem"
+                          Header="显示位置"
+                          controls:MenuChrome.IsRootItem="True"
+                          Style="{StaticResource CodexMenuItemStyle}"
+                          Click="OnPositionSettingsClick">
+                    <MenuItem.Icon>
+                        <Path Data="{StaticResource MenuPlacementIcon}"
+                              Style="{StaticResource CodexMenuIconStyle}" />
+                    </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="HideFiveHourMenuItem"
                           Header="隐藏 5 小时"
@@ -238,24 +265,30 @@
                 </MenuItem>
             </ContextMenu>
         </Grid.ContextMenu>
-        <controls:QuotaWidgetPanel HorizontalAlignment="Stretch"
-                                   VerticalAlignment="Center"
-                                   Margin="2,0,0,0"
-                                   Height="{Binding RingDiameterDip}">
-            <controls:QuotaMeter x:Name="FiveHourMeter"
-                                 DataContext="{Binding FiveHour}"
-                                 IsRefreshing="{Binding DataContext.IsRefreshing,
-                                                        RelativeSource={RelativeSource AncestorType=Window}}"
-                                 RingDiameter="{Binding DataContext.RingDiameterDip, RelativeSource={RelativeSource AncestorType=Window}}" />
-            <controls:AdaptiveResetText x:Name="FiveHourResetText"
-                                        Text="{Binding FiveHour.ResetText}" />
+        <Grid x:Name="WidgetContentHost">
+            <Grid.RenderTransform>
+                <TranslateTransform x:Name="WidgetContentOffsetTransform" />
+            </Grid.RenderTransform>
+            <controls:QuotaWidgetPanel x:Name="WidgetPanel"
+                                       HorizontalAlignment="Stretch"
+                                       VerticalAlignment="Center"
+                                       Margin="2,0,0,0"
+                                       Height="{Binding RingDiameterDip}">
+                <controls:QuotaMeter x:Name="FiveHourMeter"
+                                     DataContext="{Binding FiveHour}"
+                                     IsRefreshing="{Binding DataContext.IsRefreshing,
+                                                            RelativeSource={RelativeSource AncestorType=Window}}"
+                                     RingDiameter="{Binding DataContext.RingDiameterDip, RelativeSource={RelativeSource AncestorType=Window}}" />
+                <controls:AdaptiveResetText x:Name="FiveHourResetText"
+                                            Text="{Binding FiveHour.ResetText}" />
 
-            <controls:QuotaMeter x:Name="WeeklyMeter"
-                                 DataContext="{Binding Weekly}"
-                                 IsRefreshing="{Binding DataContext.IsRefreshing,
-                                                        RelativeSource={RelativeSource AncestorType=Window}}"
-                                 RingDiameter="{Binding DataContext.RingDiameterDip, RelativeSource={RelativeSource AncestorType=Window}}" />
-            <controls:AdaptiveResetText Text="{Binding Weekly.ResetText}" />
-        </controls:QuotaWidgetPanel>
+                <controls:QuotaMeter x:Name="WeeklyMeter"
+                                     DataContext="{Binding Weekly}"
+                                     IsRefreshing="{Binding DataContext.IsRefreshing,
+                                                            RelativeSource={RelativeSource AncestorType=Window}}"
+                                     RingDiameter="{Binding DataContext.RingDiameterDip, RelativeSource={RelativeSource AncestorType=Window}}" />
+                <controls:AdaptiveResetText Text="{Binding Weekly.ResetText}" />
+            </controls:QuotaWidgetPanel>
+        </Grid>
     </Grid>
 </Window>

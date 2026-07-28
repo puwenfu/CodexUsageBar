@@ -181,6 +181,110 @@ public sealed class WidgetRenderTests
     });
 
     [Theory]
+    [InlineData(96)]
+    [InlineData(144)]
+    [InlineData(192)]
+    public void SidebarPlacement_KeepsFullSizeWidgetWithoutClipping(int dpi) => StaTest.Run(() =>
+    {
+        const double sidebarWidthDip = 416d / 3d;
+        var window = CreateWindow(percent: 38, dpi, widthDip: sidebarWidthDip);
+        window.ApplyPlacementLayout(
+            sidebarWidthDip,
+            useTaskbarOpticalAlignment: false);
+
+        try
+        {
+            ShowOffscreen(window);
+            Assert.Equal(sidebarWidthDip, window.ActualWidth, precision: 3);
+            Assert.True(window.ActualHeight <= TaskbarHeightDip);
+
+            var blocks = FindVisualChildren<FrameworkElement>(window)
+                .Where(element => element is QuotaMeter or AdaptiveResetText)
+                .Select(element => new RenderBlock(element, GetBoundsInWindow(element, window)))
+                .OrderBy(block => block.Bounds.Left)
+                .ToArray();
+            Assert.Equal(4, blocks.Length);
+            Assert.All(blocks, block =>
+            {
+                Assert.True(block.Bounds.Width > 0);
+                Assert.InRange(block.Bounds.Left, -0.01, sidebarWidthDip);
+                Assert.InRange(block.Bounds.Right, 0, sidebarWidthDip + 0.01);
+                Assert.InRange(block.Bounds.Top, -0.01, TaskbarHeightDip);
+                Assert.InRange(block.Bounds.Bottom, 0, TaskbarHeightDip + 0.01);
+            });
+
+            for (var index = 0; index < blocks.Length - 1; index++)
+            {
+                Assert.True(
+                    blocks[index].Bounds.Right <= blocks[index + 1].Bounds.Left + 0.01,
+                    $"Overlapping scaled blocks: {blocks[index].Bounds} and " +
+                    $"{blocks[index + 1].Bounds}");
+            }
+
+            var meterBounds = blocks
+                .Where(block => block.Element is QuotaMeter)
+                .Select(block => block.Bounds)
+                .ToArray();
+            Assert.Equal(2, meterBounds.Length);
+            Assert.All(meterBounds, bounds =>
+            {
+                Assert.Equal(36d, bounds.Width, precision: 2);
+                Assert.Equal(
+                    TaskbarHeightDip / 2d,
+                    bounds.Top + (bounds.Height / 2d),
+                    precision: 2);
+            });
+
+            var bitmap = Render(window, dpi);
+            SaveSidebar(bitmap, dpi);
+            Assert.All(blocks, block => AssertVisiblePixels(bitmap, block.Bounds));
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [Theory]
+    [InlineData(96)]
+    [InlineData(144)]
+    [InlineData(192)]
+    public void TaskbarOpticalAlignment_ShiftsVisibleContentWithoutClipping(int dpi) => StaTest.Run(() =>
+    {
+        const double fullWidthDip = 160d;
+        var window = CreateWindow(percent: 38, dpi, widthDip: fullWidthDip);
+        window.ApplyPlacementLayout(
+            fullWidthDip,
+            useTaskbarOpticalAlignment: true);
+
+        try
+        {
+            ShowOffscreen(window);
+            var meterBounds = FindVisualChildren<QuotaMeter>(window)
+                .Where(meter => meter.IsVisible)
+                .Select(meter => GetBoundsInWindow(meter, window))
+                .ToArray();
+
+            Assert.Equal(2, meterBounds.Length);
+            Assert.All(meterBounds, bounds =>
+            {
+                Assert.Equal(
+                    (TaskbarHeightDip / 2d) + 1d,
+                    bounds.Top + (bounds.Height / 2d),
+                    precision: 2);
+                Assert.InRange(bounds.Bottom, 0, TaskbarHeightDip);
+            });
+
+            var bitmap = Render(window, dpi);
+            Assert.All(meterBounds, bounds => AssertVisiblePixels(bitmap, bounds));
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [Theory]
     [InlineData(150, 96)]
     [InlineData(150, 144)]
     [InlineData(150, 192)]
@@ -289,11 +393,7 @@ public sealed class WidgetRenderTests
                 {
                     SaveScenario(bitmap, scenario.Name, widthDip, dpi);
                 }
-
-                if (widthDip == 150)
-                {
-                    Assert.All(blocks, block => AssertVisiblePixels(bitmap, block.Bounds));
-                }
+                Assert.All(blocks, block => AssertVisiblePixels(bitmap, block.Bounds));
             }
             finally
             {
@@ -408,6 +508,18 @@ public sealed class WidgetRenderTests
         var directory = Path.Combine(root, "artifacts", "visual");
         Directory.CreateDirectory(directory);
         var path = Path.Combine(directory, $"widget-weekly-only-{dpi}dpi.png");
+        using var stream = File.Create(path);
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(bitmap));
+        encoder.Save(stream);
+    }
+
+    private static void SaveSidebar(BitmapSource bitmap, int dpi)
+    {
+        var root = FindRepositoryRoot();
+        var directory = Path.Combine(root, "artifacts", "visual");
+        Directory.CreateDirectory(directory);
+        var path = Path.Combine(directory, $"widget-sidebar-139dip-{dpi}dpi.png");
         using var stream = File.Create(path);
         var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(bitmap));

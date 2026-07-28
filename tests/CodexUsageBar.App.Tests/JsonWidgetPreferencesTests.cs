@@ -17,7 +17,26 @@ public sealed class JsonWidgetPreferencesTests : IDisposable
         var preferences = Create("settings.json");
 
         Assert.False(preferences.HideFiveHourQuota);
+        Assert.Equal(QuotaColorTheme.Blue, preferences.ColorTheme);
         Assert.Equal(RefreshAnimationStyle.ProgressRing, preferences.RefreshAnimationStyle);
+        Assert.Equal(
+            WidgetPlacementPreference.Automatic,
+            preferences.PlacementPreference);
+        Assert.Equal(0d, preferences.TaskbarHorizontalOffsetDip);
+        Assert.Equal(0d, preferences.CodexSidebarHorizontalOffsetDip);
+    }
+
+    [Fact]
+    public void SetColorTheme_PersistsAcrossInstances()
+    {
+        var path = Path.Combine(_directory, "settings.json");
+        var first = new JsonWidgetPreferences(path, new RecordingLogger());
+
+        first.ColorTheme = QuotaColorTheme.Mint;
+        var second = new JsonWidgetPreferences(path, new RecordingLogger());
+
+        Assert.Equal(QuotaColorTheme.Mint, second.ColorTheme);
+        Assert.False(File.Exists(path + ".tmp"));
     }
 
     [Fact]
@@ -43,7 +62,25 @@ public sealed class JsonWidgetPreferencesTests : IDisposable
         var preferences = new JsonWidgetPreferences(path, new RecordingLogger());
 
         Assert.True(preferences.HideFiveHourQuota);
+        Assert.Equal(QuotaColorTheme.Blue, preferences.ColorTheme);
         Assert.Equal(RefreshAnimationStyle.ProgressRing, preferences.RefreshAnimationStyle);
+        Assert.Equal(
+            WidgetPlacementPreference.Automatic,
+            preferences.PlacementPreference);
+    }
+
+    [Fact]
+    public void RemovedColorTheme_FallsBackToBlue()
+    {
+        Directory.CreateDirectory(_directory);
+        var path = Path.Combine(_directory, "settings.json");
+        File.WriteAllText(
+            path,
+            """{"HideFiveHourQuota":false,"ColorTheme":"Amber"}""");
+
+        var preferences = new JsonWidgetPreferences(path, new RecordingLogger());
+
+        Assert.Equal(QuotaColorTheme.Blue, preferences.ColorTheme);
     }
 
     [Fact]
@@ -74,6 +111,54 @@ public sealed class JsonWidgetPreferencesTests : IDisposable
     }
 
     [Fact]
+    public void SetPlacementPreference_PersistsAcrossInstances()
+    {
+        var path = Path.Combine(_directory, "settings.json");
+        var first = new JsonWidgetPreferences(path, new RecordingLogger());
+
+        first.PlacementPreference = WidgetPlacementPreference.CodexSidebarPreferred;
+        var second = new JsonWidgetPreferences(path, new RecordingLogger());
+
+        Assert.Equal(
+            WidgetPlacementPreference.CodexSidebarPreferred,
+            second.PlacementPreference);
+        Assert.False(File.Exists(path + ".tmp"));
+    }
+
+    [Fact]
+    public void HorizontalOffsets_PersistIndependentlyAcrossInstances()
+    {
+        var path = Path.Combine(_directory, "settings.json");
+        var first = new JsonWidgetPreferences(path, new RecordingLogger())
+        {
+            TaskbarHorizontalOffsetDip = 48d,
+            CodexSidebarHorizontalOffsetDip = -24d,
+        };
+
+        var second = new JsonWidgetPreferences(path, new RecordingLogger());
+
+        Assert.Equal(48d, second.TaskbarHorizontalOffsetDip);
+        Assert.Equal(-24d, second.CodexSidebarHorizontalOffsetDip);
+        Assert.False(File.Exists(path + ".tmp"));
+    }
+
+    [Fact]
+    public void RemovedPlacementPreference_FallsBackToAutomatic()
+    {
+        Directory.CreateDirectory(_directory);
+        var path = Path.Combine(_directory, "settings.json");
+        File.WriteAllText(
+            path,
+            """{"HideFiveHourQuota":false,"PlacementPreference":"DesktopOnly"}""");
+
+        var preferences = new JsonWidgetPreferences(path, new RecordingLogger());
+
+        Assert.Equal(
+            WidgetPlacementPreference.Automatic,
+            preferences.PlacementPreference);
+    }
+
+    [Fact]
     public void CorruptFile_DefaultsToShowingAndLogsReadFailure()
     {
         Directory.CreateDirectory(_directory);
@@ -84,7 +169,11 @@ public sealed class JsonWidgetPreferencesTests : IDisposable
         var preferences = new JsonWidgetPreferences(path, logger);
 
         Assert.False(preferences.HideFiveHourQuota);
+        Assert.Equal(QuotaColorTheme.Blue, preferences.ColorTheme);
         Assert.Equal(RefreshAnimationStyle.ProgressRing, preferences.RefreshAnimationStyle);
+        Assert.Equal(
+            WidgetPlacementPreference.Automatic,
+            preferences.PlacementPreference);
         Assert.Equal(["settings.read_failed"], logger.EventCodes);
     }
 
