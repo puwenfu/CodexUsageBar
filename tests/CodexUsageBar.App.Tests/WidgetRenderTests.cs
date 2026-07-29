@@ -195,7 +195,9 @@ public sealed class WidgetRenderTests
         try
         {
             ShowOffscreen(window);
-            Assert.Equal(sidebarWidthDip, window.ActualWidth, precision: 3);
+            var dpiScale = VisualTreeHelper.GetDpi(window).DpiScaleX;
+            var expectedWidthDip = Math.Round(sidebarWidthDip * dpiScale) / dpiScale;
+            Assert.Equal(expectedWidthDip, window.ActualWidth, precision: 3);
             Assert.True(window.ActualHeight <= TaskbarHeightDip);
 
             var blocks = FindVisualChildren<FrameworkElement>(window)
