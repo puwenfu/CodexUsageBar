@@ -45,6 +45,7 @@ public sealed class WidgetWindowInteractionTests
 
             Assert.True(menu.IsOpen);
             Assert.Equal(1, monitor.StartCount);
+            Assert.True(monitor.IsRunning);
 
             var inside = menu.PointToScreen(new Point(1, 1));
             monitor.RaiseButtonDown(
@@ -72,6 +73,7 @@ public sealed class WidgetWindowInteractionTests
             monitor.RaiseButtonDown(-10_000, -10_000);
             ProcessPendingDispatcherWork();
             Assert.False(menu.IsOpen);
+            Assert.False(monitor.IsRunning);
             Assert.Equal(1, monitor.StopCount);
         }
         finally
@@ -871,7 +873,11 @@ public sealed class WidgetWindowInteractionTests
 
     private sealed class RecordingSystemMouseButtonMonitor : ISystemMouseButtonMonitor
     {
+        private bool _isRunning;
+
         public event EventHandler<SystemMouseButtonDownEventArgs>? ButtonDown;
+
+        public bool IsRunning => _isRunning;
 
         public int StartCount { get; private set; }
 
@@ -879,12 +885,24 @@ public sealed class WidgetWindowInteractionTests
 
         public bool Start()
         {
+            if (_isRunning)
+            {
+                return true;
+            }
+
+            _isRunning = true;
             StartCount++;
             return true;
         }
 
         public void Stop()
         {
+            if (!_isRunning)
+            {
+                return;
+            }
+
+            _isRunning = false;
             StopCount++;
         }
 
