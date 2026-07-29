@@ -1,5 +1,6 @@
 using System.Runtime.ExceptionServices;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Threading;
 using CodexUsageBar.Windows.Interop;
 using CodexUsageBar.Windows.Tray;
@@ -23,6 +24,31 @@ public sealed class SystemTrayIconHostTests
         Assert.Equal(
             NativeMethods.NOTIFYICON_VERSION_4,
             native.NotifyVersions[1]);
+        window.Close();
+    });
+
+    [Fact]
+    public void UpdateIcon_ModifiesVisibleIconAndReleasesOwnedHandles() => RunSta(() =>
+    {
+        var native = new RecordingSystemTrayNativeApi();
+        var window = new Window();
+        using (var host = new SystemTrayIconHost(window, _ => true, native))
+        {
+            Assert.True(host.UpdateIcon(CreateIconState(72d)));
+            Assert.True(host.SetVisible(true));
+            Assert.True(host.UpdateIcon(CreateIconState(41d)));
+
+            Assert.Equal(
+                [
+                    NativeMethods.NIM_ADD,
+                    NativeMethods.NIM_SETVERSION,
+                    NativeMethods.NIM_MODIFY,
+                ],
+                native.NotifyMessages);
+            Assert.Equal([new nint(101)], native.DestroyedIcons);
+        }
+
+        Assert.Equal([new nint(101), new nint(102)], native.DestroyedIcons);
         window.Close();
     });
 
@@ -125,12 +151,26 @@ public sealed class SystemTrayIconHostTests
         }
     }
 
+    private static SystemTrayIconState CreateIconState(double progress) =>
+        new(
+            progress,
+            "72",
+            Colors.White,
+            Color.FromRgb(0x2F, 0x2F, 0x2F),
+            Color.FromRgb(0x8D, 0x9E, 0xFC),
+            Color.FromRgb(0x58, 0x5E, 0xF6),
+            Color.FromRgb(0x4E, 0x4F, 0xF4));
+
     private sealed class RecordingSystemTrayNativeApi(
         List<string>? sequence = null) : ISystemTrayNativeApi
     {
+        private int _nextIconHandle = 101;
+
         public List<uint> NotifyMessages { get; } = [];
 
         public List<uint> NotifyVersions { get; } = [];
+
+        public List<nint> DestroyedIcons { get; } = [];
 
         public uint RegisterWindowMessage(string messageName) => 0xC123;
 
@@ -144,6 +184,15 @@ public sealed class SystemTrayIconHostTests
         }
 
         public nint LoadApplicationIcon() => new(1);
+
+        public nint CreateProgressIcon(SystemTrayIconState state) =>
+            new(_nextIconHandle++);
+
+        public bool DestroyIcon(nint iconHandle)
+        {
+            DestroyedIcons.Add(iconHandle);
+            return true;
+        }
 
         public bool SetForegroundWindow(nint windowHandle)
         {

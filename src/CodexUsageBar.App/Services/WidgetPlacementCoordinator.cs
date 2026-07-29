@@ -70,6 +70,8 @@ internal sealed class WidgetPlacementCoordinator : IDisposable
         _window.PlacementPreferenceChanged += OnPlacementPreferenceChanged;
         _window.HorizontalOffsetsChanged += OnHorizontalOffsetsChanged;
         _trayHost = new SystemTrayIconHost(window, window.OpenContextMenuAt);
+        _window.TrayIconStateChanged += OnTrayIconStateChanged;
+        UpdateTrayIcon();
         _timer = new DispatcherTimer(
             EvaluationInterval,
             DispatcherPriority.Background,
@@ -96,6 +98,7 @@ internal sealed class WidgetPlacementCoordinator : IDisposable
         _window.ContextMenuActivityChanged -= OnContextMenuActivityChanged;
         _window.PlacementPreferenceChanged -= OnPlacementPreferenceChanged;
         _window.HorizontalOffsetsChanged -= OnHorizontalOffsetsChanged;
+        _window.TrayIconStateChanged -= OnTrayIconStateChanged;
         _trayHost.Dispose();
         _taskbarHost.Dispose();
         _codexHost.Dispose();
@@ -352,6 +355,17 @@ internal sealed class WidgetPlacementCoordinator : IDisposable
         else
         {
             Evaluate();
+        }
+    }
+
+    private void OnTrayIconStateChanged(object? sender, EventArgs eventArgs) =>
+        UpdateTrayIcon();
+
+    private void UpdateTrayIcon()
+    {
+        if (_window.TryCreateTrayIconState(out var state))
+        {
+            _ = _trayHost.UpdateIcon(state);
         }
     }
 

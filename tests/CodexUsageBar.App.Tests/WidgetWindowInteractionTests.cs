@@ -646,6 +646,102 @@ public sealed class WidgetWindowInteractionTests
     });
 
     [Fact]
+    public void TrayIconState_PrefersFiveHourAndFallsBackToWeekly() => StaTest.Run(() =>
+    {
+        var primaryWindow = CreateWindow(
+            new RecordingRefreshRequester(),
+            new RecordingStartupRegistration(false),
+            () => { });
+        var fallbackWindow = CreateWindow(
+            new RecordingRefreshRequester(),
+            new RecordingStartupRegistration(false),
+            () => { },
+            display: new WidgetDisplayModel(
+                new QuotaDisplayWindow("--", "5h", "--", 1),
+                new QuotaDisplayWindow("41%", "周", "周五 18:20", 1),
+                "weekly only",
+                IsRefreshing: false,
+                IsStale: false));
+        try
+        {
+            Assert.True(primaryWindow.TryCreateTrayIconState(out var primary));
+            Assert.Equal(72d, primary.Progress);
+            Assert.Equal("72", primary.Text);
+
+            Assert.True(fallbackWindow.TryCreateTrayIconState(out var fallback));
+            Assert.Equal(41d, fallback.Progress);
+            Assert.Equal("41", fallback.Text);
+        }
+        finally
+        {
+            fallbackWindow.Close();
+            primaryWindow.Close();
+        }
+    });
+
+    [Fact]
+    public void TrayIconState_UsesFullLabelAtOneHundredPercent() => StaTest.Run(() =>
+    {
+        var window = CreateWindow(
+            new RecordingRefreshRequester(),
+            new RecordingStartupRegistration(false),
+            () => { },
+            display: new WidgetDisplayModel(
+                new QuotaDisplayWindow("100%", "5h", "21:00", 1),
+                new QuotaDisplayWindow("41%", "周", "周五 18:20", 1),
+                "full",
+                IsRefreshing: false,
+                IsStale: false));
+        try
+        {
+            Assert.True(window.TryCreateTrayIconState(out var state));
+            Assert.Equal(100d, state.Progress);
+            Assert.Equal("满", state.Text);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [Fact]
+    public void TrayIconState_TracksSelectedThemeAndSystemMode() => StaTest.Run(() =>
+    {
+        var window = CreateWindow(
+            new RecordingRefreshRequester(),
+            new RecordingStartupRegistration(false),
+            () => { });
+        var changeCount = 0;
+        window.TrayIconStateChanged += (_, _) => changeCount++;
+        try
+        {
+            window.ThemePurpleMenuItem.RaiseEvent(
+                new RoutedEventArgs(MenuItem.ClickEvent));
+
+            Assert.True(window.TryCreateTrayIconState(out var dark));
+            Assert.Equal(Color.FromRgb(0xF8, 0xF7, 0xFC), dark.TextColor);
+            Assert.Equal(Color.FromRgb(0x2F, 0x2F, 0x2F), dark.TrackColor);
+            Assert.Equal(Color.FromRgb(0xD4, 0xA7, 0xFF), dark.GradientStartColor);
+            Assert.Equal(Color.FromRgb(0x9B, 0x6C, 0xFF), dark.GradientMiddleColor);
+            Assert.Equal(Color.FromRgb(0x5B, 0x43, 0xFF), dark.GradientEndColor);
+
+            window.ApplySystemTheme(SystemTheme.Light);
+
+            Assert.True(window.TryCreateTrayIconState(out var light));
+            Assert.Equal(Color.FromRgb(0x20, 0x21, 0x24), light.TextColor);
+            Assert.Equal(Color.FromRgb(0xB6, 0xB6, 0xB6), light.TrackColor);
+            Assert.Equal(Color.FromRgb(0xE2, 0xC8, 0xFF), light.GradientStartColor);
+            Assert.Equal(Color.FromRgb(0xB8, 0x8C, 0xFF), light.GradientMiddleColor);
+            Assert.Equal(Color.FromRgb(0x80, 0x6C, 0xFF), light.GradientEndColor);
+            Assert.Equal(2, changeCount);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [Fact]
     public void ContextMenu_ActionItemsUseLineIcons() => StaTest.Run(() =>
     {
         var window = CreateWindow(
@@ -795,9 +891,10 @@ public sealed class WidgetWindowInteractionTests
         Action exit,
         string tooltip = "complete tooltip",
         IWidgetPreferences? preferences = null,
-        ISystemMouseButtonMonitor? systemMouseButtonMonitor = null)
+        ISystemMouseButtonMonitor? systemMouseButtonMonitor = null,
+        WidgetDisplayModel? display = null)
     {
-        var display = new WidgetDisplayModel(
+        display ??= new WidgetDisplayModel(
             new QuotaDisplayWindow("72%", "5h", "00:35", 1),
             new QuotaDisplayWindow("41%", "周", "周五 18:20", 1),
             tooltip,
@@ -843,7 +940,7 @@ public sealed class WidgetWindowInteractionTests
         Assert.Equal(1.35d, track.StrokeThickness);
 
         var arc = Assert.IsType<ProgressArc>(icon.Children[1]);
-        Assert.Equal(85d, arc.Progress);
+        Assert.Equal(75d, arc.Progress);
         Assert.Equal(1.35d, arc.StrokeThickness);
         return icon;
     }

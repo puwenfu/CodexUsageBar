@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.IO;
 using System.Security;
 using System.Windows;
@@ -29,6 +30,7 @@ public partial class WidgetWindow : Window
     private readonly DebugViewModel _debugViewModel;
     private readonly ISystemThemeWatcher? _systemThemeWatcher;
     private readonly ISystemMouseButtonMonitor? _systemMouseButtonMonitor;
+    private readonly WidgetViewModel _viewModel;
     private SystemTheme _currentSystemTheme = SystemTheme.Dark;
     private string _currentTheme;
     private Views.DebugWindow? _debugWindow;
@@ -41,6 +43,8 @@ public partial class WidgetWindow : Window
     internal event EventHandler? PlacementPreferenceChanged;
 
     internal event EventHandler? HorizontalOffsetsChanged;
+
+    internal event EventHandler? TrayIconStateChanged;
 
     internal Views.PositionSettingsWindow? ActivePositionSettingsWindow =>
         _positionSettingsWindow;
@@ -70,6 +74,7 @@ public partial class WidgetWindow : Window
         ISystemMouseButtonMonitor? systemMouseButtonMonitor = null)
     {
         ArgumentNullException.ThrowIfNull(viewModel);
+        _viewModel = viewModel;
         _refreshRequester = refreshRequester ?? throw new ArgumentNullException(nameof(refreshRequester));
         _startupRegistration = startupRegistration ?? throw new ArgumentNullException(nameof(startupRegistration));
         _preferences = preferences ?? throw new ArgumentNullException(nameof(preferences));
@@ -84,7 +89,11 @@ public partial class WidgetWindow : Window
         }
 
         InitializeComponent();
+        ReplaceTheme(
+            Resources,
+            ResolveThemeResourceName(_currentTheme, _currentSystemTheme));
         Closed += OnClosed;
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         if (_systemMouseButtonMonitor is not null)
         {
             _systemMouseButtonMonitor.ButtonDown += OnSystemMouseButtonDown;
@@ -130,6 +139,9 @@ public partial class WidgetWindow : Window
     {
         _currentSystemTheme = theme;
         SystemThemeResources.Replace(Resources, theme);
+        ReplaceTheme(
+            Resources,
+            ResolveThemeResourceName(_currentTheme, theme));
         ApplyThemePreviewBrushes();
         if (Application.Current is { } application)
         {
@@ -141,6 +153,65 @@ public partial class WidgetWindow : Window
 
         _debugWindow?.ApplySystemTheme(theme);
         _positionSettingsWindow?.ApplySystemTheme(theme);
+        TrayIconStateChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    internal bool TryCreateTrayIconState(out SystemTrayIconState state)
+    {
+        state = default;
+        if (TryFindResource("QuotaProgressBrush") is not LinearGradientBrush progressBrush ||
+            TryFindResource("QuotaTrackBrush") is not SolidColorBrush trackBrush ||
+            TryFindResource("QuotaPrimaryTextBrush") is not SolidColorBrush textBrush)
+        {
+            return false;
+        }
+
+        var stops = progressBrush.GradientStops
+            .OrderBy(stop => stop.Offset)
+            .ToArray();
+        if (stops.Length < 2)
+        {
+            return false;
+        }
+
+        var quota = HasQuota(_viewModel.FiveHour)
+            ? _viewModel.FiveHour
+            : HasQuota(_viewModel.Weekly)
+                ? _viewModel.Weekly
+                : null;
+        var middle = stops
+            .OrderBy(stop => Math.Abs(stop.Offset - 0.52d))
+            .First();
+        state = new SystemTrayIconState(
+            quota?.Progress ?? 0d,
+            quota is null
+                ? "--"
+                : CreateTrayIconText(quota),
+            textBrush.Color,
+            trackBrush.Color,
+            stops[0].Color,
+            middle.Color,
+            stops[^1].Color);
+        return true;
+    }
+
+    private static bool HasQuota(QuotaMeterViewModel quota) =>
+        quota.PercentageText.EndsWith('%');
+
+    private static string CreateTrayIconText(QuotaMeterViewModel quota) =>
+        quota.Progress >= 99.5d
+            ? "满"
+            : quota.PercentageText.TrimEnd('%').Trim();
+
+    private void OnViewModelPropertyChanged(
+        object? sender,
+        PropertyChangedEventArgs eventArgs)
+    {
+        if (eventArgs.PropertyName is nameof(WidgetViewModel.FiveHour) or
+            nameof(WidgetViewModel.Weekly))
+        {
+            TrayIconStateChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     private void ApplyThemePreviewBrushes()
@@ -165,6 +236,7 @@ public partial class WidgetWindow : Window
     private void OnClosed(object? sender, EventArgs eventArgs)
     {
         Closed -= OnClosed;
+        _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
         if (_systemMouseButtonMonitor is not null)
         {
             _systemMouseButtonMonitor.ButtonDown -= OnSystemMouseButtonDown;
@@ -465,20 +537,16 @@ public partial class WidgetWindow : Window
         var themeName = GetThemeResourceName(theme);
         _currentTheme = themeName;
         _preferences.ColorTheme = theme;
-        if (Application.Current is not { } application)
-        {
-            return;
-        }
-
         var resourceName = ResolveThemeResourceName(themeName, _currentSystemTheme);
-        if (_currentTheme == themeName &&
-            application.Resources.MergedDictionaries.Any(
+        ReplaceTheme(Resources, resourceName);
+        if (Application.Current is { } application &&
+            !application.Resources.MergedDictionaries.Any(
                 dictionary => dictionary.Source?.ToString().Contains(resourceName) == true))
         {
-            return;
+            ReplaceTheme(application.Resources, resourceName);
         }
 
-        ReplaceTheme(application.Resources, resourceName);
+        TrayIconStateChanged?.Invoke(this, EventArgs.Empty);
     }
 
     internal static string GetThemeResourceName(QuotaColorTheme theme) =>

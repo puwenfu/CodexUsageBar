@@ -43,6 +43,10 @@ public sealed class TaskbarWindowHostContractTests
             new[]
             {
                 "CallNextHookEx",
+                "CreateBitmap",
+                "CreateIconIndirect",
+                "DeleteObject",
+                "DestroyIcon",
                 "DwmGetWindowAttribute",
                 "EnumWindows",
                 "FindWindow",

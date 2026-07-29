@@ -10,6 +10,10 @@ internal interface ISystemTrayNativeApi
 
     nint LoadApplicationIcon();
 
+    nint CreateProgressIcon(SystemTrayIconState state);
+
+    bool DestroyIcon(nint iconHandle);
+
     bool SetForegroundWindow(nint windowHandle);
 
     bool PostMessage(nint windowHandle, int message);
@@ -33,6 +37,12 @@ internal sealed class SystemTrayNativeApi : ISystemTrayNativeApi
             ? icon
             : NativeMethods.LoadIcon(0, NativeMethods.IDI_APPLICATION);
     }
+
+    public nint CreateProgressIcon(SystemTrayIconState state) =>
+        SystemTrayProgressIconRenderer.CreateIcon(state);
+
+    public bool DestroyIcon(nint iconHandle) =>
+        NativeMethods.DestroyIcon(iconHandle);
 
     public bool SetForegroundWindow(nint windowHandle) =>
         NativeMethods.SetForegroundWindow(windowHandle);
