@@ -6,10 +6,10 @@ internal static class TaskbarWindowStyleApplier
 {
     internal static bool TryApply(
         IWindowsNativeApi nativeApi,
-        nint windowHandle,
-        nint taskbarWindowHandle)
+        nint windowHandle)
     {
-        if (!nativeApi.TryGetWindowExtendedStyle(windowHandle, out var currentStyles))
+        if (!nativeApi.TrySetWindowParent(windowHandle, 0) ||
+            !nativeApi.TryGetWindowExtendedStyle(windowHandle, out var currentStyles))
         {
             return false;
         }
@@ -31,8 +31,6 @@ internal static class TaskbarWindowStyleApplier
             return false;
         }
 
-        return (nativeApi.GetWindowParent(windowHandle) == taskbarWindowHandle ||
-                nativeApi.TrySetWindowParent(windowHandle, taskbarWindowHandle)) &&
-            nativeApi.GetWindowParent(windowHandle) == taskbarWindowHandle;
+        return true;
     }
 }

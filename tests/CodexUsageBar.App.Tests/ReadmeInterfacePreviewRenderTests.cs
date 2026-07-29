@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using CodexUsageBar.App.Controls;
 using CodexUsageBar.App.Services;
 using CodexUsageBar.App.ViewModels;
 using CodexUsageBar.Core.Presentation;
@@ -116,7 +117,26 @@ public sealed class ReadmeInterfacePreviewRenderTests
 
         foreach (var source in sourceItems)
         {
-            var sourceIcon = Assert.IsType<System.Windows.Shapes.Ellipse>(source.Icon);
+            var sourceIcon = Assert.IsType<Grid>(source.Icon);
+            var sourceTrack = Assert.Single(
+                sourceIcon.Children.OfType<System.Windows.Shapes.Ellipse>());
+            var sourceArc = Assert.Single(sourceIcon.Children.OfType<ProgressArc>());
+            var icon = new Grid
+            {
+                Width = sourceIcon.Width,
+                Height = sourceIcon.Height,
+            };
+            icon.Children.Add(new System.Windows.Shapes.Ellipse
+            {
+                StrokeThickness = sourceTrack.StrokeThickness,
+                Stroke = sourceTrack.Stroke,
+            });
+            icon.Children.Add(new ProgressArc
+            {
+                Progress = sourceArc.Progress,
+                StrokeThickness = sourceArc.StrokeThickness,
+                Stroke = sourceArc.Stroke,
+            });
             submenu.Items.Add(new MenuItem
             {
                 Header = source.Header,
@@ -126,13 +146,7 @@ public sealed class ReadmeInterfacePreviewRenderTests
                 Padding = source.Padding,
                 Style = itemStyle,
                 HeaderTemplate = headerTemplate,
-                Icon = new System.Windows.Shapes.Ellipse
-                {
-                    Width = sourceIcon.Width,
-                    Height = sourceIcon.Height,
-                    StrokeThickness = sourceIcon.StrokeThickness,
-                    Stroke = sourceIcon.Stroke,
-                },
+                Icon = icon,
             });
         }
 

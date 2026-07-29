@@ -79,6 +79,10 @@ Theme Color submenu follow the Windows light or dark system appearance.
 - Runs as a self-contained executable without storing Codex credentials.
 - Follows the Windows light or dark system appearance without requiring a restart.
 - Includes five meter themes with matching light palettes and multiple refresh animations.
+- Keeps a persistent system-tray entry and can place the widget on the taskbar,
+  beside the Codex sidebar, or in tray-only mode.
+- Supports independent horizontal adjustment for taskbar and Codex-sidebar
+  placement, with preferences restored after restart.
 
 ## Requirements
 
@@ -106,10 +110,13 @@ Compare the displayed SHA-256 value with the ZIP entry in `SHA256SUMS.txt`.
 
 ## Usage
 
-Left-click the widget to refresh. Right-click it to refresh, change the meter
-theme or refresh animation, control the optional startup entry, open the debug
-panel, or exit. Light and dark appearance is controlled automatically by
-Windows; startup is disabled by default.
+Left-click the widget to refresh. Right-click the widget or tray icon to
+refresh, change the meter theme or refresh animation, choose its display
+surface, adjust the horizontal position, control the optional startup entry,
+open the debug panel, or exit. Clicking outside closes the menu. Theme,
+placement, and offset preferences are restored after restart. Light and dark
+appearance is controlled automatically by Windows; startup is disabled by
+default.
 
 ## Privacy
 
@@ -120,9 +127,11 @@ task content. See [Privacy](docs/privacy.md) for details.
 
 ## Known limitations
 
-The widget supports the primary bottom Windows 11 taskbar. It exits instead of
-drawing elsewhere when the required taskbar is hidden, unavailable, or not
-supported. Codex protocol changes or temporary connectivity failures can delay
+The widget supports the primary bottom Windows 11 taskbar and can align with
+the sidebar area of the current desktop Codex window. A Codex interface update
+may require readjusting the sidebar offset; if the preferred surface is
+unavailable, the app falls back to another available surface or the system
+tray. Codex protocol changes or temporary connectivity failures can delay
 refreshing; the last safe values remain visible when available.
 
 ## Build from source

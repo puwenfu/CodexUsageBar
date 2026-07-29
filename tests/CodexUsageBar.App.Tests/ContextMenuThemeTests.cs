@@ -207,6 +207,52 @@ public sealed class ContextMenuThemeTests
     });
 
     [Fact]
+    public void DirectPanelLauncher_DoesNotAdvertiseSubmenu() => StaTest.Run(() =>
+    {
+        Application.ResourceAssembly ??= typeof(WidgetWindow).Assembly;
+        var resources = CreateResources();
+        var launcher = new MenuItem
+        {
+            Header = "显示位置",
+            Style = Assert.IsType<Style>(resources["CodexMenuItemStyle"]),
+        };
+        launcher.Resources.MergedDictionaries.Add(resources);
+        MenuChrome.SetIsRootItem(launcher, true);
+
+        launcher.ApplyTemplate();
+
+        Assert.Empty(launcher.Items);
+        var arrow = Assert.IsType<Path>(
+            launcher.Template.FindName("SubmenuArrow", launcher));
+        Assert.Equal(Visibility.Collapsed, arrow.Visibility);
+    });
+
+    [Fact]
+    public void CheckedChoice_ShowsExplicitCheckmark() => StaTest.Run(() =>
+    {
+        Application.ResourceAssembly ??= typeof(WidgetWindow).Assembly;
+        var resources = CreateResources();
+        var choice = new MenuItem
+        {
+            Header = "流光旋转",
+            Tag = "Theme",
+            IsCheckable = true,
+            IsChecked = true,
+            Style = Assert.IsType<Style>(resources["CodexMenuItemStyle"]),
+        };
+        choice.Resources.MergedDictionaries.Add(resources);
+
+        choice.ApplyTemplate();
+
+        var check = Assert.IsType<Path>(
+            choice.Template.FindName("ChoiceCheck", choice));
+        var arrow = Assert.IsType<Path>(
+            choice.Template.FindName("SubmenuArrow", choice));
+        Assert.Equal(Visibility.Visible, check.Visibility);
+        Assert.Equal(Visibility.Collapsed, arrow.Visibility);
+    });
+
+    [Fact]
     public void MenuIcons_HaveCompleteSemanticSetAndBalancedStroke() => StaTest.Run(() =>
     {
         Application.ResourceAssembly ??= typeof(WidgetWindow).Assembly;
@@ -215,6 +261,7 @@ public sealed class ContextMenuThemeTests
         {
             "MenuRefreshIcon",
             "MenuThemeIcon",
+            "MenuPlacementIcon",
             "MenuHideIcon",
             "MenuStartupIcon",
             "MenuDebugIcon",

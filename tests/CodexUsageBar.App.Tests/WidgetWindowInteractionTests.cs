@@ -1,12 +1,18 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using System.Windows.Shapes;
+using System.Windows.Threading;
+using CodexUsageBar.App.Controls;
 using CodexUsageBar.App.Services;
 using CodexUsageBar.App.ViewModels;
 using CodexUsageBar.Core.Presentation;
+using CodexUsageBar.Windows.Geometry;
+using CodexUsageBar.Windows.Input;
 using CodexUsageBar.Windows.Startup;
 
 namespace CodexUsageBar.App.Tests;
@@ -14,6 +20,105 @@ namespace CodexUsageBar.App.Tests;
 [Collection(WpfTestCollection.Name)]
 public sealed class WidgetWindowInteractionTests
 {
+    [Fact]
+    public void ContextMenu_SystemClickClosesOnlyWhenPointIsOutside() => StaTest.Run(() =>
+    {
+        var monitor = new RecordingSystemMouseButtonMonitor();
+        var window = CreateWindow(
+            new RecordingRefreshRequester(),
+            new RecordingStartupRegistration(isEnabled: false),
+            () => { },
+            systemMouseButtonMonitor: monitor);
+        try
+        {
+            window.Left = 100;
+            window.Top = 100;
+            window.Show();
+            window.UpdateLayout();
+
+            var menu = Assert.IsType<ContextMenu>(window.WidgetRoot.ContextMenu);
+            menu.PlacementTarget = window.WidgetRoot;
+            menu.Placement = PlacementMode.Bottom;
+            menu.IsOpen = true;
+            menu.ApplyTemplate();
+            menu.UpdateLayout();
+
+            Assert.True(menu.IsOpen);
+            Assert.Equal(1, monitor.StartCount);
+            Assert.True(monitor.IsRunning);
+
+            var inside = menu.PointToScreen(new Point(1, 1));
+            monitor.RaiseButtonDown(
+                checked((int)Math.Round(inside.X)),
+                checked((int)Math.Round(inside.Y)));
+            ProcessPendingDispatcherWork();
+            Assert.True(menu.IsOpen);
+
+            var submenuOwner = menu.Items
+                .OfType<MenuItem>()
+                .First(item => item.HasItems);
+            submenuOwner.IsSubmenuOpen = true;
+            submenuOwner.ApplyTemplate();
+            ProcessPendingDispatcherWork();
+            var submenuPopup = Assert.IsType<RightPreferredPopup>(
+                submenuOwner.Template.FindName("PART_Popup", submenuOwner));
+            var submenuChild = Assert.IsAssignableFrom<FrameworkElement>(submenuPopup.Child);
+            var insideSubmenu = submenuChild.PointToScreen(new Point(1, 13));
+            monitor.RaiseButtonDown(
+                checked((int)Math.Round(insideSubmenu.X)),
+                checked((int)Math.Round(insideSubmenu.Y)));
+            ProcessPendingDispatcherWork();
+            Assert.True(menu.IsOpen);
+
+            monitor.RaiseButtonDown(-10_000, -10_000);
+            ProcessPendingDispatcherWork();
+            Assert.False(menu.IsOpen);
+            Assert.False(monitor.IsRunning);
+            Assert.Equal(1, monitor.StopCount);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [Fact]
+    public void PlacementLayout_AppliesOpticalOffsetOnlyOnTaskbar() => StaTest.Run(() =>
+    {
+        var window = CreateWindow(
+            new RecordingRefreshRequester(),
+            new RecordingStartupRegistration(isEnabled: false),
+            () => { });
+        try
+        {
+            window.ApplyPlacementLayout(
+                widthDip: 160d,
+                useTaskbarOpticalAlignment: true);
+
+            Assert.Equal(new Thickness(2, 0, 0, 0), window.WidgetPanel.Margin);
+            Assert.Equal(168d, window.WidgetContentHost.Width);
+            Assert.Equal(HorizontalAlignment.Left, window.WidgetContentHost.HorizontalAlignment);
+            Assert.Equal(1d, window.WidgetContentOffsetTransform.Y);
+
+            window.ApplyPlacementLayout(
+                widthDip: 416d / 3d,
+                useTaskbarOpticalAlignment: false);
+
+            Assert.Equal(new Thickness(2, 0, 0, 0), window.WidgetPanel.Margin);
+            Assert.Equal(416d / 3d, window.WidgetContentHost.Width, precision: 6);
+            Assert.Equal(HorizontalAlignment.Left, window.WidgetContentHost.HorizontalAlignment);
+            Assert.Same(Transform.Identity, window.WidgetPanel.RenderTransform);
+            Assert.Equal(0d, window.WidgetContentOffsetTransform.Y);
+
+            Assert.Throws<ArgumentOutOfRangeException>(
+                () => window.ApplyPlacementWidth(111.99d));
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
     [Theory]
     [InlineData(1d)]
     [InlineData(1.5d)]
@@ -58,7 +163,7 @@ public sealed class WidgetWindowInteractionTests
             var menu = Assert.IsType<ContextMenu>(window.WidgetRoot.ContextMenu);
             var items = menu.Items.Cast<object>().ToArray();
             Assert.Same(window.FindResource("CodexContextMenuStyle"), menu.Style);
-            Assert.Equal(9, items.Length);
+            Assert.Equal(10, items.Length);
             Assert.Equal("立即刷新", Assert.IsType<MenuItem>(items[0]).Header);
             var themeItem = Assert.IsType<MenuItem>(items[1]);
             Assert.Equal("主题颜色", themeItem.Header);
@@ -72,7 +177,7 @@ public sealed class WidgetWindowInteractionTests
             Assert.All(themeItem.Items.Cast<MenuItem>(), item =>
             {
                 Assert.Equal("Theme", item.Tag);
-                Assert.IsType<Ellipse>(item.Icon);
+                AssertThemeProgressStructure(item);
                 Assert.Equal(new Thickness(8, 6, 2, 6), item.Padding);
                 Assert.Same(window.FindResource("ColorThemeHeaderTemplate"), item.HeaderTemplate);
                 var header = Assert.IsType<TextBlock>(item.HeaderTemplate.LoadContent());
@@ -84,16 +189,20 @@ public sealed class WidgetWindowInteractionTests
                 ["进度环旋转", "流光旋转", "光点巡航"],
                 refreshStyleItem.Items.Cast<MenuItem>().Select(item => item.Header).ToArray());
             Assert.All(refreshStyleItem.Items.Cast<MenuItem>(), item => Assert.True(item.IsCheckable));
-            var hideFiveHourItem = Assert.IsType<MenuItem>(items[3]);
+            var placementItem = Assert.IsType<MenuItem>(items[3]);
+            Assert.Same(window.PositionSettingsMenuItem, placementItem);
+            Assert.Equal("显示位置", placementItem.Header);
+            Assert.Empty(placementItem.Items);
+            var hideFiveHourItem = Assert.IsType<MenuItem>(items[4]);
             Assert.Equal("隐藏 5 小时", hideFiveHourItem.Header);
             Assert.True(hideFiveHourItem.IsCheckable);
             Assert.Equal("Toggle", hideFiveHourItem.Tag);
-            var startupItem = Assert.IsType<MenuItem>(items[4]);
+            var startupItem = Assert.IsType<MenuItem>(items[5]);
             Assert.Equal("开机启动", startupItem.Header);
             Assert.True(startupItem.IsCheckable);
             Assert.Equal("Toggle", startupItem.Tag);
-            Assert.Equal("调试面板", Assert.IsType<MenuItem>(items[5]).Header);
-            var aboutItem = Assert.IsType<MenuItem>(items[6]);
+            Assert.Equal("调试面板", Assert.IsType<MenuItem>(items[6]).Header);
+            var aboutItem = Assert.IsType<MenuItem>(items[7]);
             Assert.Equal("关于", aboutItem.Header);
             Assert.Single(aboutItem.Items);
             var aboutContent = Assert.IsType<MenuItem>(aboutItem.Items[0]);
@@ -107,22 +216,54 @@ public sealed class WidgetWindowInteractionTests
             Assert.Equal(
                 AboutVersionProvider.GetDisplayText(typeof(WidgetWindow).Assembly),
                 window.AboutVersionText.Text);
-            Assert.IsType<Separator>(items[7]);
-            var exitItem = Assert.IsType<MenuItem>(items[8]);
+            Assert.IsType<Separator>(items[8]);
+            var exitItem = Assert.IsType<MenuItem>(items[9]);
             Assert.Same(
                 window.FindResource("CodexMenuIconStyle"),
                 Assert.IsType<Path>(exitItem.Icon).Style);
-            Assert.Equal("退出", Assert.IsType<MenuItem>(items[8]).Header);
-            Assert.Equal("Exit", Assert.IsType<MenuItem>(items[8]).Tag);
+            Assert.Equal("退出", Assert.IsType<MenuItem>(items[9]).Header);
+            Assert.Equal("Exit", Assert.IsType<MenuItem>(items[9]).Tag);
             Assert.Empty(startup.Writes);
 
             Assert.IsType<MenuItem>(items[0]).RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
             startupItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
-            Assert.IsType<MenuItem>(items[8]).RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            Assert.IsType<MenuItem>(items[9]).RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
 
             Assert.Equal([RefreshReason.Manual], refresh.Reasons);
             Assert.Equal([true], startup.Writes);
             Assert.Equal(1, exitCalls);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [Fact]
+    public void ColorTheme_AppliesStoredChoiceAndPersistsMenuChanges() => StaTest.Run(() =>
+    {
+        var preferences = new SessionWidgetPreferences(
+            colorTheme: QuotaColorTheme.Purple);
+        var window = CreateWindow(
+            new RecordingRefreshRequester(),
+            new RecordingStartupRegistration(false),
+            () => { },
+            preferences: preferences);
+        try
+        {
+            var menu = Assert.IsType<ContextMenu>(window.WidgetRoot.ContextMenu);
+            menu.RaiseEvent(new RoutedEventArgs(ContextMenu.OpenedEvent));
+
+            Assert.False(window.ThemeBlueMenuItem.IsChecked);
+            Assert.True(window.ThemePurpleMenuItem.IsChecked);
+
+            window.ThemeForestMenuItem.RaiseEvent(
+                new RoutedEventArgs(MenuItem.ClickEvent));
+
+            Assert.Equal(QuotaColorTheme.Forest, preferences.ColorTheme);
+            menu.RaiseEvent(new RoutedEventArgs(ContextMenu.OpenedEvent));
+            Assert.True(window.ThemeForestMenuItem.IsChecked);
+            Assert.False(window.ThemePurpleMenuItem.IsChecked);
         }
         finally
         {
@@ -165,6 +306,60 @@ public sealed class WidgetWindowInteractionTests
     });
 
     [Fact]
+    public void StartupRegistrationFailure_DisablesItemWithoutCrashingMenu() => StaTest.Run(() =>
+    {
+        var startup = new FailingStartupRegistration(failRead: true);
+        var window = CreateWindow(
+            new RecordingRefreshRequester(),
+            startup,
+            () => { });
+        try
+        {
+            var menu = Assert.IsType<ContextMenu>(window.WidgetRoot.ContextMenu);
+
+            menu.RaiseEvent(new RoutedEventArgs(ContextMenu.OpenedEvent));
+
+            Assert.False(window.StartupMenuItem.IsEnabled);
+            Assert.False(window.StartupMenuItem.IsChecked);
+            Assert.Equal("开机启动（不可用）", window.StartupMenuItem.Header);
+            Assert.Equal(
+                "Windows 拒绝访问开机启动设置。",
+                window.StartupMenuItem.ToolTip);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [Fact]
+    public void StartupWriteFailure_RollsBackToggleAndShowsUnavailableState() => StaTest.Run(() =>
+    {
+        var startup = new FailingStartupRegistration(failRead: false);
+        var window = CreateWindow(
+            new RecordingRefreshRequester(),
+            startup,
+            () => { });
+        try
+        {
+            var menu = Assert.IsType<ContextMenu>(window.WidgetRoot.ContextMenu);
+            menu.RaiseEvent(new RoutedEventArgs(ContextMenu.OpenedEvent));
+            window.StartupMenuItem.IsChecked = true;
+
+            window.StartupMenuItem.RaiseEvent(
+                new RoutedEventArgs(MenuItem.ClickEvent));
+
+            Assert.False(window.StartupMenuItem.IsChecked);
+            Assert.False(window.StartupMenuItem.IsEnabled);
+            Assert.Equal("开机启动（不可用）", window.StartupMenuItem.Header);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [Fact]
     public void HideFiveHourPreference_AppliesAtStartupAndMenuOpen() => StaTest.Run(() =>
     {
         var preferences = new SessionWidgetPreferences(hideFiveHourQuota: true);
@@ -181,6 +376,184 @@ public sealed class WidgetWindowInteractionTests
             Assert.True(window.HideFiveHourMenuItem.IsChecked);
             Assert.Equal(Visibility.Collapsed, window.FiveHourMeter.Visibility);
             Assert.Equal(Visibility.Collapsed, window.FiveHourResetText.Visibility);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [Fact]
+    public void PlacementPreference_AppliesInDirectPositionPanel() => StaTest.Run(() =>
+    {
+        var preferences = new SessionWidgetPreferences(
+            placementPreference: WidgetPlacementPreference.CodexSidebarPreferred);
+        var window = CreateWindow(
+            new RecordingRefreshRequester(),
+            new RecordingStartupRegistration(false),
+            () => { },
+            preferences: preferences);
+        try
+        {
+            window.PositionSettingsMenuItem.RaiseEvent(
+                new RoutedEventArgs(MenuItem.ClickEvent));
+            var settingsWindow = Assert.IsType<Views.PositionSettingsWindow>(
+                window.ActivePositionSettingsWindow);
+            Assert.True(settingsWindow.PlacementCodexSidebarChoice.IsChecked);
+
+            settingsWindow.PlacementTaskbarChoice.RaiseEvent(
+                new RoutedEventArgs(ButtonBase.ClickEvent));
+
+            Assert.Equal(
+                WidgetPlacementPreference.TaskbarPreferred,
+                preferences.PlacementPreference);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [Fact]
+    public void PositionSettingsWindow_UsesSafeRangesAndPersistsOffsetsIndependently() => StaTest.Run(() =>
+    {
+        var preferences = new SessionWidgetPreferences(
+            placementPreference: WidgetPlacementPreference.CodexSidebarPreferred,
+            taskbarHorizontalOffsetDip: 12d,
+            codexSidebarHorizontalOffsetDip: -8d);
+        var window = new Views.PositionSettingsWindow(
+            preferences,
+            SystemTheme.Dark);
+        var debugWindow = new Views.DebugWindow(
+            new DebugViewModel(),
+            SystemTheme.Dark);
+        var changeCount = 0;
+        var placementChangeCount = 0;
+        window.HorizontalOffsetsChanged += (_, _) => changeCount++;
+        window.PlacementPreferenceChanged += (_, _) => placementChangeCount++;
+        try
+        {
+            Assert.Equal(debugWindow.Width, window.Width);
+            Assert.Equal(288d, window.Height);
+            Assert.Equal(debugWindow.DebugPanel.Width, window.PositionPanel.Width);
+            Assert.Equal(264d, window.PositionPanel.Height);
+            Assert.Equal(
+                debugWindow.DebugPanel.CornerRadius,
+                window.PositionPanel.CornerRadius);
+            Assert.Equal(
+                debugWindow.DebugPanel.BorderThickness,
+                window.PositionPanel.BorderThickness);
+            Assert.Equal(
+                debugWindow.DebugTitleBar.Padding,
+                window.PositionTitleBar.Padding);
+            Assert.Equal(new Thickness(6, 0, 6, 10), window.PositionControls.Margin);
+            var shadow = Assert.IsType<DropShadowEffect>(window.PositionPanel.Effect);
+            var debugShadow = Assert.IsType<DropShadowEffect>(
+                debugWindow.DebugPanel.Effect);
+            Assert.Equal(debugShadow.BlurRadius, shadow.BlurRadius);
+            Assert.Equal(debugShadow.ShadowDepth, shadow.ShadowDepth);
+            Assert.False(window.PlacementAutomaticChoice.IsChecked);
+            Assert.False(window.PlacementTaskbarChoice.IsChecked);
+            Assert.True(window.PlacementCodexSidebarChoice.IsChecked);
+            Assert.False(window.PlacementSystemTrayChoice.IsChecked);
+            Assert.Same(
+                window.FindResource("CodexSliderStyle"),
+                window.TaskbarHorizontalOffsetSlider.Style);
+            Assert.Same(
+                window.FindResource("CodexSliderStyle"),
+                window.CodexHorizontalOffsetSlider.Style);
+            Assert.Same(
+                window.CodexHorizontalOffsetSlider,
+                window.PositionControls.Children[4]);
+            Assert.Same(
+                window.TaskbarHorizontalOffsetSlider,
+                window.PositionControls.Children[6]);
+
+            window.PlacementTaskbarChoice.RaiseEvent(
+                new RoutedEventArgs(ButtonBase.ClickEvent));
+
+            Assert.Equal(
+                WidgetPlacementPreference.TaskbarPreferred,
+                preferences.PlacementPreference);
+            Assert.True(window.PlacementTaskbarChoice.IsChecked);
+            Assert.Equal(1, placementChangeCount);
+
+            window.ApplyHorizontalOffsetRanges(
+                new HorizontalOffsetRange(0d, 80d),
+                new HorizontalOffsetRange(-40d, 60d));
+
+            Assert.Equal(15d, window.TaskbarHorizontalOffsetSlider.Value, precision: 6);
+            Assert.Equal(-20d, window.CodexHorizontalOffsetSlider.Value, precision: 6);
+            Assert.Equal(0d, window.TaskbarHorizontalOffsetSlider.Minimum);
+            Assert.Equal(-100d, window.CodexHorizontalOffsetSlider.Minimum);
+
+            window.TaskbarHorizontalOffsetSlider.Value = 30d;
+            window.CodexHorizontalOffsetSlider.Value = -40d;
+
+            Assert.Equal(24d, preferences.TaskbarHorizontalOffsetDip);
+            Assert.Equal(-16d, preferences.CodexSidebarHorizontalOffsetDip);
+            Assert.Equal("+24 px", window.TaskbarHorizontalOffsetValueText.Text);
+            Assert.Equal("-16 px", window.CodexHorizontalOffsetValueText.Text);
+            Assert.Equal(2, changeCount);
+        }
+        finally
+        {
+            debugWindow.Close();
+            window.Close();
+        }
+    });
+
+    [Fact]
+    public void DisplayPositionMenu_IgnoresHoverAndOpensFullPanelOnClick() => StaTest.Run(() =>
+    {
+        var window = CreateWindow(
+            new RecordingRefreshRequester(),
+            new RecordingStartupRegistration(false),
+            () => { });
+        try
+        {
+            window.PositionSettingsMenuItem.RaiseEvent(
+                new MouseEventArgs(Mouse.PrimaryDevice, Environment.TickCount)
+                {
+                    RoutedEvent = Mouse.MouseEnterEvent,
+                });
+            Assert.Null(window.ActivePositionSettingsWindow);
+
+            window.PositionSettingsMenuItem.RaiseEvent(
+                new RoutedEventArgs(MenuItem.ClickEvent));
+
+            var settingsWindow = Assert.IsType<Views.PositionSettingsWindow>(
+                window.ActivePositionSettingsWindow);
+            Assert.True(settingsWindow.IsVisible);
+            Assert.Equal("显示位置", window.PositionSettingsMenuItem.Header);
+            Assert.Empty(window.PositionSettingsMenuItem.Items);
+            Assert.Equal("显示位置", settingsWindow.Title);
+            Assert.Equal(4, settingsWindow.PlacementChoices.Children.Count);
+            settingsWindow.Close();
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [Fact]
+    public void CodexPositiveOffset_UsesFineControlNearZero() => StaTest.Run(() =>
+    {
+        var preferences = new SessionWidgetPreferences();
+        var window = new Views.PositionSettingsWindow(
+            preferences,
+            SystemTheme.Dark);
+        try
+        {
+            window.ApplyHorizontalOffsetRanges(
+                new HorizontalOffsetRange(0d, 80d),
+                new HorizontalOffsetRange(-40d, 400d));
+
+            window.CodexHorizontalOffsetSlider.Value = 25d;
+
+            Assert.Equal(25d, preferences.CodexSidebarHorizontalOffsetDip);
+            Assert.Equal("+25 px", window.CodexHorizontalOffsetValueText.Text);
         }
         finally
         {
@@ -421,7 +794,8 @@ public sealed class WidgetWindowInteractionTests
         IStartupRegistration startup,
         Action exit,
         string tooltip = "complete tooltip",
-        IWidgetPreferences? preferences = null)
+        IWidgetPreferences? preferences = null,
+        ISystemMouseButtonMonitor? systemMouseButtonMonitor = null)
     {
         var display = new WidgetDisplayModel(
             new QuotaDisplayWindow("72%", "5h", "00:35", 1),
@@ -436,18 +810,42 @@ public sealed class WidgetWindowInteractionTests
             startup,
             preferences ?? new SessionWidgetPreferences(),
             exit,
-            new DebugViewModel());
+            new DebugViewModel(),
+            systemMouseButtonMonitor: systemMouseButtonMonitor);
+    }
+
+    private static void ProcessPendingDispatcherWork()
+    {
+        var frame = new DispatcherFrame();
+        _ = Dispatcher.CurrentDispatcher.BeginInvoke(
+            DispatcherPriority.ApplicationIdle,
+            () => frame.Continue = false);
+        Dispatcher.PushFrame(frame);
     }
 
     private static void AssertThemeRing(MenuItem item, params Color[] expectedColors)
     {
-        var ring = Assert.IsType<Ellipse>(item.Icon);
-        Assert.Equal(11.7d, ring.Width);
-        Assert.Equal(11.7d, ring.Height);
-        Assert.Null(ring.Fill);
-        Assert.Equal(1.35d, ring.StrokeThickness);
-        var brush = Assert.IsType<LinearGradientBrush>(ring.Stroke);
+        var icon = AssertThemeProgressStructure(item);
+        var arc = Assert.IsType<ProgressArc>(icon.Children[1]);
+        var brush = Assert.IsType<LinearGradientBrush>(arc.Stroke);
         Assert.Equal(expectedColors, brush.GradientStops.Select(stop => stop.Color).ToArray());
+    }
+
+    private static Grid AssertThemeProgressStructure(MenuItem item)
+    {
+        var icon = Assert.IsType<Grid>(item.Icon);
+        Assert.Equal(11.7d, icon.Width);
+        Assert.Equal(11.7d, icon.Height);
+        Assert.Equal(2, icon.Children.Count);
+
+        var track = Assert.IsType<Ellipse>(icon.Children[0]);
+        Assert.Null(track.Fill);
+        Assert.Equal(1.35d, track.StrokeThickness);
+
+        var arc = Assert.IsType<ProgressArc>(icon.Children[1]);
+        Assert.Equal(85d, arc.Progress);
+        Assert.Equal(1.35d, arc.StrokeThickness);
+        return icon;
     }
 
     private sealed class RecordingRefreshRequester : IRefreshRequester
@@ -473,6 +871,61 @@ public sealed class WidgetWindowInteractionTests
         }
     }
 
+    private sealed class RecordingSystemMouseButtonMonitor : ISystemMouseButtonMonitor
+    {
+        private bool _isRunning;
+
+        public event EventHandler<SystemMouseButtonDownEventArgs>? ButtonDown;
+
+        public bool IsRunning => _isRunning;
+
+        public int StartCount { get; private set; }
+
+        public int StopCount { get; private set; }
+
+        public bool Start()
+        {
+            if (_isRunning)
+            {
+                return true;
+            }
+
+            _isRunning = true;
+            StartCount++;
+            return true;
+        }
+
+        public void Stop()
+        {
+            if (!_isRunning)
+            {
+                return;
+            }
+
+            _isRunning = false;
+            StopCount++;
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public void RaiseButtonDown(int screenX, int screenY) =>
+            ButtonDown?.Invoke(
+                this,
+                new SystemMouseButtonDownEventArgs(screenX, screenY));
+    }
+
+    private sealed class FailingStartupRegistration(bool failRead) : IStartupRegistration
+    {
+        public bool IsEnabled => failRead
+            ? throw new UnauthorizedAccessException()
+            : false;
+
+        public void SetEnabled(bool enabled) =>
+            throw new UnauthorizedAccessException();
+    }
+
     private sealed class RecordingWidgetPreferences(Func<Visibility> readVisibility) : IWidgetPreferences
     {
         private bool _hideFiveHourQuota;
@@ -491,5 +944,14 @@ public sealed class WidgetWindowInteractionTests
 
         public RefreshAnimationStyle RefreshAnimationStyle { get; set; } =
             RefreshAnimationStyle.ProgressRing;
+
+        public QuotaColorTheme ColorTheme { get; set; } = QuotaColorTheme.Blue;
+
+        public WidgetPlacementPreference PlacementPreference { get; set; } =
+            WidgetPlacementPreference.Automatic;
+
+        public double TaskbarHorizontalOffsetDip { get; set; }
+
+        public double CodexSidebarHorizontalOffsetDip { get; set; }
     }
 }

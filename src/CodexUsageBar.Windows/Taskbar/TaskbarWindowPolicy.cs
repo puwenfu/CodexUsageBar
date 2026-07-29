@@ -1,5 +1,4 @@
 using CodexUsageBar.Windows.Interop;
-using CodexUsageBar.Windows.Geometry;
 
 namespace CodexUsageBar.Windows.Taskbar;
 
@@ -29,7 +28,7 @@ internal static class TaskbarWindowPolicy
         ~NativeMethods.WS_EX_APPWINDOW;
 
     internal static long ApplyWindowStyles(long currentStyles) =>
-        (currentStyles | NativeMethods.WS_CHILD) & ~NativeMethods.WS_POPUP;
+        (currentStyles | NativeMethods.WS_POPUP) & ~NativeMethods.WS_CHILD;
 
     internal static bool HasRequiredExtendedStyles(long styles) =>
         (styles & NativeMethods.WS_EX_TOOLWINDOW) != 0 &&
@@ -37,18 +36,8 @@ internal static class TaskbarWindowPolicy
         (styles & NativeMethods.WS_EX_APPWINDOW) == 0;
 
     internal static bool HasRequiredWindowStyles(long styles) =>
-        (styles & NativeMethods.WS_CHILD) != 0 &&
-        (styles & NativeMethods.WS_POPUP) == 0;
-
-    internal static PhysicalRect ToTaskbarClientBounds(
-        TaskbarPlacement placement,
-        int clientLeft,
-        int clientTop) =>
-        new(
-            clientLeft,
-            clientTop,
-            clientLeft + placement.RightPhysicalPixel - placement.LeftPhysicalPixel,
-            clientTop + placement.BottomPhysicalPixel - placement.TopPhysicalPixel);
+        (styles & NativeMethods.WS_POPUP) != 0 &&
+        (styles & NativeMethods.WS_CHILD) == 0;
 
     internal static bool ShouldRestoreWindowVisibility(
         bool expectedVisible,

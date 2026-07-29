@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using CodexUsageBar.App.Controls;
 
 namespace CodexUsageBar.App.Tests;
 
@@ -64,7 +65,7 @@ public sealed class ContextMenuRenderTests
             IsCheckable = true,
             IsChecked = true,
             Style = itemStyle,
-            Icon = CreateThemeRing(),
+            Icon = CreateThemeProgress(),
         });
 
         menu.ApplyTemplate();
@@ -116,16 +117,29 @@ public sealed class ContextMenuRenderTests
         Stretch = Stretch.Uniform,
     };
 
-    private static Ellipse CreateThemeRing() => new()
+    private static Grid CreateThemeProgress()
     {
-        Width = 11.7,
-        Height = 11.7,
-        StrokeThickness = 1.35,
-        Stroke = new LinearGradientBrush(
-            Color.FromRgb(0x8D, 0x9E, 0xFC),
-            Color.FromRgb(0x4E, 0x4F, 0xF4),
-            45),
-    };
+        var icon = new Grid
+        {
+            Width = 11.7,
+            Height = 11.7,
+        };
+        icon.Children.Add(new Ellipse
+        {
+            StrokeThickness = 1.35,
+            Stroke = new SolidColorBrush(Color.FromRgb(0x2F, 0x2F, 0x2F)),
+        });
+        icon.Children.Add(new ProgressArc
+        {
+            Progress = 85,
+            StrokeThickness = 1.35,
+            Stroke = new LinearGradientBrush(
+                Color.FromRgb(0x8D, 0x9E, 0xFC),
+                Color.FromRgb(0x4E, 0x4F, 0xF4),
+                45),
+        });
+        return icon;
+    }
 
     private static RenderTargetBitmap Render(FrameworkElement element, int dpi)
     {

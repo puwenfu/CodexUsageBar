@@ -1,0 +1,251 @@
+<Window x:Class="CodexUsageBar.App.Views.PositionSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="显示位置"
+        Width="220"
+        Height="288"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        Topmost="True"
+        Background="Transparent"
+        Foreground="{DynamicResource QuotaPrimaryTextBrush}"
+        FontFamily="{DynamicResource WidgetFontFamily}"
+        SnapsToDevicePixels="True"
+        UseLayoutRounding="True"
+        PreviewKeyDown="OnPreviewKeyDown">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/CodexUsageBar.App;component/Themes/SystemThemeDark.xaml" />
+                <ResourceDictionary Source="/CodexUsageBar.App;component/Themes/ContextMenuTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <Style x:Key="PositionTitleButtonStyle" TargetType="{x:Type Button}">
+                <Setter Property="Width" Value="28" />
+                <Setter Property="Height" Value="28" />
+                <Setter Property="Foreground" Value="{DynamicResource ContextMenuSecondaryTextBrush}" />
+                <Setter Property="FontFamily" Value="Segoe UI Variable Text" />
+                <Setter Property="FontSize" Value="18" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border x:Name="ButtonBackground"
+                                    Background="{TemplateBinding Background}"
+                                    CornerRadius="5">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  Margin="0,-2,0,0" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="ButtonBackground"
+                                            Property="Background"
+                                            Value="{DynamicResource ContextMenuHoverBrush}" />
+                                    <Setter Property="Foreground"
+                                            Value="{DynamicResource ContextMenuPrimaryTextBrush}" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Opacity" Value="0.72" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="PositionLabelStyle" TargetType="{x:Type TextBlock}">
+                <Setter Property="Foreground" Value="{DynamicResource ContextMenuSecondaryTextBrush}" />
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+
+            <Style x:Key="PositionChoiceStyle" TargetType="{x:Type RadioButton}">
+                <Setter Property="Height" Value="25" />
+                <Setter Property="Foreground" Value="{DynamicResource ContextMenuSecondaryTextBrush}" />
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type RadioButton}">
+                            <Border x:Name="ChoiceBackground"
+                                    Background="Transparent"
+                                    CornerRadius="5"
+                                    Padding="8,0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="18" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid Width="12"
+                                          Height="12"
+                                          VerticalAlignment="Center">
+                                        <Ellipse Stroke="{DynamicResource ContextMenuSecondaryTextBrush}"
+                                                 StrokeThickness="1" />
+                                        <Ellipse x:Name="ChoiceMark"
+                                                 Width="6"
+                                                 Height="6"
+                                                 Fill="{DynamicResource QuotaProgressBrush}"
+                                                 Visibility="Collapsed" />
+                                    </Grid>
+                                    <ContentPresenter Grid.Column="1"
+                                                      VerticalAlignment="Center"
+                                                      RecognizesAccessKey="True" />
+                                </Grid>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="ChoiceBackground"
+                                            Property="Background"
+                                            Value="{DynamicResource ContextMenuHoverBrush}" />
+                                    <Setter Property="Foreground"
+                                            Value="{DynamicResource ContextMenuPrimaryTextBrush}" />
+                                </Trigger>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="ChoiceBackground"
+                                            Property="Background"
+                                            Value="{DynamicResource ContextMenuHoverBrush}" />
+                                    <Setter TargetName="ChoiceMark"
+                                            Property="Visibility"
+                                            Value="Visible" />
+                                    <Setter Property="Foreground"
+                                            Value="{DynamicResource ContextMenuPrimaryTextBrush}" />
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter TargetName="ChoiceBackground"
+                                            Property="BorderBrush"
+                                            Value="{DynamicResource ContextMenuPrimaryTextBrush}" />
+                                    <Setter TargetName="ChoiceBackground"
+                                            Property="BorderThickness"
+                                            Value="1" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <Border x:Name="PositionPanel"
+                Width="196"
+                Height="264"
+                Background="{DynamicResource ContextMenuSurfaceBrush}"
+                BorderBrush="{DynamicResource ContextMenuBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="11"
+                SnapsToDevicePixels="True">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="16"
+                                  ShadowDepth="4"
+                                  Opacity="{DynamicResource DebugPanelShadowOpacity}"
+                                  Color="{DynamicResource ContextMenuShadowColor}" />
+            </Border.Effect>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Border x:Name="PositionTitleBar"
+                        Background="Transparent"
+                        Padding="14,0,8,0"
+                        MouseLeftButtonDown="OnTitleBarMouseLeftButtonDown">
+                    <Grid>
+                        <TextBlock x:Name="PositionTitle"
+                                   Text="显示位置"
+                                   Foreground="{DynamicResource ContextMenuPrimaryTextBrush}"
+                                   FontSize="14"
+                                   VerticalAlignment="Center" />
+                        <Button x:Name="CloseButton"
+                                Content="×"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource PositionTitleButtonStyle}"
+                                Click="OnCloseClick" />
+                    </Grid>
+                </Border>
+
+                <StackPanel x:Name="PositionControls"
+                            Grid.Row="1"
+                            Margin="6,0,6,10">
+                    <TextBlock Text="停靠方式"
+                               Style="{StaticResource PositionLabelStyle}"
+                               Margin="8,0,8,3" />
+                    <StackPanel x:Name="PlacementChoices"
+                                Margin="0,0,0,6">
+                        <RadioButton x:Name="PlacementAutomaticChoice"
+                                     Content="自动（推荐）"
+                                     GroupName="PlacementPreference"
+                                     Style="{StaticResource PositionChoiceStyle}"
+                                     Click="OnPlacementAutomaticClick" />
+                        <RadioButton x:Name="PlacementTaskbarChoice"
+                                     Content="任务栏优先"
+                                     GroupName="PlacementPreference"
+                                     Style="{StaticResource PositionChoiceStyle}"
+                                     Click="OnPlacementTaskbarClick" />
+                        <RadioButton x:Name="PlacementCodexSidebarChoice"
+                                     Content="Codex 侧栏优先"
+                                     GroupName="PlacementPreference"
+                                     Style="{StaticResource PositionChoiceStyle}"
+                                     Click="OnPlacementCodexSidebarClick" />
+                        <RadioButton x:Name="PlacementSystemTrayChoice"
+                                     Content="仅系统托盘"
+                                     GroupName="PlacementPreference"
+                                     Style="{StaticResource PositionChoiceStyle}"
+                                     Click="OnPlacementSystemTrayClick" />
+                    </StackPanel>
+
+                    <Border Height="1"
+                            Background="{DynamicResource ContextMenuDividerBrush}"
+                            Margin="8,0,8,7" />
+
+                    <Grid Margin="8,0">
+                        <TextBlock Text="Codex 横向位移"
+                                   Style="{StaticResource PositionLabelStyle}" />
+                        <TextBlock x:Name="CodexHorizontalOffsetValueText"
+                                   Text="0 px"
+                                   Foreground="{DynamicResource ContextMenuPrimaryTextBrush}"
+                                   FontSize="12"
+                                   HorizontalAlignment="Right" />
+                    </Grid>
+                    <Slider x:Name="CodexHorizontalOffsetSlider"
+                            Minimum="-100"
+                            Maximum="100"
+                            IsSnapToTickEnabled="True"
+                            TickFrequency="0.1"
+                            SmallChange="0.1"
+                            LargeChange="5"
+                            Style="{StaticResource CodexSliderStyle}"
+                            ValueChanged="OnCodexHorizontalOffsetValueChanged"
+                            Margin="8,0,8,6" />
+
+                    <Grid Margin="8,0">
+                        <TextBlock Text="任务栏横向位移"
+                                   Style="{StaticResource PositionLabelStyle}" />
+                        <TextBlock x:Name="TaskbarHorizontalOffsetValueText"
+                                   Text="0 px"
+                                   Foreground="{DynamicResource ContextMenuPrimaryTextBrush}"
+                                   FontSize="12"
+                                   HorizontalAlignment="Right" />
+                    </Grid>
+                    <Slider x:Name="TaskbarHorizontalOffsetSlider"
+                            Minimum="0"
+                            Maximum="100"
+                            IsSnapToTickEnabled="True"
+                            TickFrequency="0.1"
+                            SmallChange="0.1"
+                            LargeChange="5"
+                            Style="{StaticResource CodexSliderStyle}"
+                            ValueChanged="OnTaskbarHorizontalOffsetValueChanged"
+                            Margin="8,0" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

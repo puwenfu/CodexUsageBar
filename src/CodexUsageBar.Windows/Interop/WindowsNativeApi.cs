@@ -13,6 +13,26 @@ internal sealed class WindowsNativeApi : IWindowsNativeApi
 
     public nint FindWindow(string className) => NativeMethods.FindWindow(className, null);
 
+    public IReadOnlyList<nint> EnumerateTopLevelWindows(uint processId)
+    {
+        var windows = new List<nint>();
+        _ = NativeMethods.EnumWindows(
+            (windowHandle, lParam) =>
+            {
+                _ = NativeMethods.GetWindowThreadProcessId(
+                    windowHandle,
+                    out var windowProcessId);
+                if (windowProcessId == processId)
+                {
+                    windows.Add(windowHandle);
+                }
+
+                return true;
+            },
+            0);
+        return windows;
+    }
+
     public bool TryGetWindowRectangle(nint windowHandle, out PhysicalRect rectangle)
     {
         var found = NativeMethods.GetWindowRect(windowHandle, out var nativeRectangle);
@@ -88,25 +108,8 @@ internal sealed class WindowsNativeApi : IWindowsNativeApi
         return NativeCallResultPolicy.PointerResultSucceeded(result, Marshal.GetLastPInvokeError());
     }
 
-    public nint GetWindowParent(nint windowHandle) => NativeMethods.GetParent(windowHandle);
-
-    public bool TryScreenToClient(
-        nint windowHandle,
-        int screenX,
-        int screenY,
-        out int clientX,
-        out int clientY)
-    {
-        var point = new NativeMethods.POINT
-        {
-            X = screenX,
-            Y = screenY,
-        };
-        var succeeded = NativeMethods.ScreenToClient(windowHandle, ref point);
-        clientX = point.X;
-        clientY = point.Y;
-        return succeeded;
-    }
+    public nint GetWindowAbove(nint windowHandle) =>
+        NativeMethods.GetWindow(windowHandle, NativeMethods.GW_HWNDPREV);
 
     public bool TrySetWindowPosition(
         nint windowHandle,

@@ -8,14 +8,15 @@ public sealed class TaskbarWindowStyleApplierTests
     [Fact]
     public void TryApply_SetsAndVerifiesRequiredStylesWhilePreservingUnrelatedBits()
     {
-        var native = new FakeWindowsNativeApi();
+        var native = new FakeWindowsNativeApi { WindowParent = new nint(84) };
 
-        var applied = TaskbarWindowStyleApplier.TryApply(native, (nint)42, (nint)84);
+        var applied = TaskbarWindowStyleApplier.TryApply(native, (nint)42);
 
         Assert.True(applied);
         Assert.True(TaskbarWindowPolicy.HasRequiredExtendedStyles(native.WindowExtendedStyle));
         Assert.True(TaskbarWindowPolicy.HasRequiredWindowStyles(native.WindowStyle));
-        Assert.Equal((nint)84, native.WindowParent);
+        Assert.Equal(0, native.WindowParent);
+        Assert.All(native.WindowParentTargets, target => Assert.Equal(0, target));
         Assert.NotEqual(0, native.WindowExtendedStyle & 0x20L);
         Assert.NotEqual(0, native.WindowStyle & 0x1000L);
     }
@@ -25,7 +26,7 @@ public sealed class TaskbarWindowStyleApplierTests
     {
         var native = new FakeWindowsNativeApi { GetWindowExtendedStyleSucceeds = false };
 
-        Assert.False(TaskbarWindowStyleApplier.TryApply(native, (nint)42, (nint)84));
+        Assert.False(TaskbarWindowStyleApplier.TryApply(native, (nint)42));
     }
 
     [Fact]
@@ -33,7 +34,7 @@ public sealed class TaskbarWindowStyleApplierTests
     {
         var native = new FakeWindowsNativeApi { SetWindowExtendedStyleSucceeds = false };
 
-        Assert.False(TaskbarWindowStyleApplier.TryApply(native, (nint)42, (nint)84));
+        Assert.False(TaskbarWindowStyleApplier.TryApply(native, (nint)42));
     }
 
     [Fact]
@@ -41,15 +42,15 @@ public sealed class TaskbarWindowStyleApplierTests
     {
         var native = new FakeWindowsNativeApi { IgnoreWindowExtendedStyleWrites = true };
 
-        Assert.False(TaskbarWindowStyleApplier.TryApply(native, (nint)42, (nint)84));
+        Assert.False(TaskbarWindowStyleApplier.TryApply(native, (nint)42));
     }
 
     [Fact]
-    public void TryApply_FailsClosedWhenTaskbarParentCannotBeApplied()
+    public void TryApply_FailsClosedWhenDesktopParentCannotBeRestored()
     {
         var native = new FakeWindowsNativeApi { SetWindowParentSucceeds = false };
 
-        Assert.False(TaskbarWindowStyleApplier.TryApply(native, (nint)42, (nint)84));
+        Assert.False(TaskbarWindowStyleApplier.TryApply(native, (nint)42));
     }
 
     [Theory]

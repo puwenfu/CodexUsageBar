@@ -19,38 +19,16 @@ public sealed class TaskbarWindowPolicyTests
     }
 
     [Fact]
-    public void ApplyWindowStyles_MakesWindowATaskbarChildAndPreservesUnrelatedBits()
+    public void ApplyWindowStyles_MakesWindowAnIndependentPopupAndPreservesUnrelatedBits()
     {
         var original = NativeMethods.WS_POPUP | 0x1000L;
 
         var updated = TaskbarWindowPolicy.ApplyWindowStyles(original);
 
-        Assert.Equal(0, updated & NativeMethods.WS_POPUP);
-        Assert.NotEqual(0, updated & NativeMethods.WS_CHILD);
+        Assert.NotEqual(0, updated & NativeMethods.WS_POPUP);
+        Assert.Equal(0, updated & NativeMethods.WS_CHILD);
         Assert.NotEqual(0, updated & 0x1000L);
         Assert.True(TaskbarWindowPolicy.HasRequiredWindowStyles(updated));
-    }
-
-    [Fact]
-    public void ToTaskbarClientBounds_ConvertsPhysicalScreenCoordinatesToParentCoordinates()
-    {
-        var placement = new Geometry.TaskbarPlacement(
-            LeftDip: 4,
-            TopDip: 1032,
-            WidthDip: 168,
-            HeightDip: 48,
-            RingDiameterDip: 40,
-            LeftPhysicalPixel: 4,
-            TopPhysicalPixel: 1032,
-            RightPhysicalPixel: 172,
-            BottomPhysicalPixel: 1080);
-
-        var clientBounds = TaskbarWindowPolicy.ToTaskbarClientBounds(
-            placement,
-            clientLeft: 7,
-            clientTop: 3);
-
-        Assert.Equal(new Geometry.PhysicalRect(7, 3, 175, 51), clientBounds);
     }
 
     [Theory]

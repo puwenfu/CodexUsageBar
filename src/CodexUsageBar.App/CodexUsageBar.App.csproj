@@ -10,6 +10,7 @@
     <OutputType>WinExe</OutputType>
     <UseWPF>true</UseWPF>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\..\assets\CodexUsageBar.ico</ApplicationIcon>
   </PropertyGroup>
 
 </Project>

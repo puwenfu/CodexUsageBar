@@ -113,73 +113,9 @@
                 </Setter>
             </Style>
 
-            <Style x:Key="DebugSliderDecreaseButtonStyle" TargetType="{x:Type RepeatButton}">
-                <Setter Property="Focusable" Value="False" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type RepeatButton}">
-                            <Border Height="4"
-                                    Background="{DynamicResource QuotaProgressBrush}"
-                                    CornerRadius="2"
-                                    VerticalAlignment="Center" />
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-
-            <Style x:Key="DebugSliderIncreaseButtonStyle" TargetType="{x:Type RepeatButton}">
-                <Setter Property="Focusable" Value="False" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type RepeatButton}">
-                            <Border Height="4"
-                                    Background="{DynamicResource ContextMenuBorderBrush}"
-                                    CornerRadius="2"
-                                    VerticalAlignment="Center" />
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-
-            <Style x:Key="DebugSliderThumbStyle" TargetType="{x:Type Thumb}">
-                <Setter Property="Width" Value="13" />
-                <Setter Property="Height" Value="13" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type Thumb}">
-                            <Ellipse Fill="{DynamicResource QuotaProgressBrush}"
-                                     Stroke="{DynamicResource ContextMenuPrimaryTextBrush}"
-                                     StrokeThickness="1" />
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-
-            <Style x:Key="DebugSliderStyle" TargetType="{x:Type Slider}">
-                <Setter Property="Height" Value="20" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type Slider}">
-                            <Grid>
-                                <Track x:Name="PART_Track"
-                                       VerticalAlignment="Center">
-                                    <Track.DecreaseRepeatButton>
-                                        <RepeatButton Command="{x:Static Slider.DecreaseLarge}"
-                                                      Style="{StaticResource DebugSliderDecreaseButtonStyle}" />
-                                    </Track.DecreaseRepeatButton>
-                                    <Track.IncreaseRepeatButton>
-                                        <RepeatButton Command="{x:Static Slider.IncreaseLarge}"
-                                                      Style="{StaticResource DebugSliderIncreaseButtonStyle}" />
-                                    </Track.IncreaseRepeatButton>
-                                    <Track.Thumb>
-                                        <Thumb Style="{StaticResource DebugSliderThumbStyle}" />
-                                    </Track.Thumb>
-                                </Track>
-                            </Grid>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
+            <Style x:Key="DebugSliderStyle"
+                   TargetType="{x:Type Slider}"
+                   BasedOn="{StaticResource CodexSliderStyle}" />
 
             <Style x:Key="DebugTextBoxStyle" TargetType="{x:Type TextBox}">
                 <Setter Property="Height" Value="31" />

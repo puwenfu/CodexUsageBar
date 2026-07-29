@@ -117,6 +117,9 @@ public sealed class DebugWindowThemeTests
                 window.FindResource("DebugSliderStyle"),
                 window.WeeklySlider.Style);
             Assert.Same(
+                window.FindResource("CodexSliderStyle"),
+                Assert.IsType<Style>(window.FindResource("DebugSliderStyle")).BasedOn);
+            Assert.Same(
                 window.FindResource("DebugTextBoxStyle"),
                 window.FiveHourTextBox.Style);
             Assert.Same(

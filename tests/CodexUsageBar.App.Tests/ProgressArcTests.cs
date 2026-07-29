@@ -33,6 +33,7 @@ public sealed class ProgressArcTests
     });
 
     [Theory]
+    [InlineData(85d)]
     [InlineData(93d)]
     [InlineData(96d)]
     public void RoundedCaps_VisibleSweepMatchesProgress(double progress) => StaTest.Run(() =>

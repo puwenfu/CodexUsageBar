@@ -76,23 +76,23 @@ public sealed class TaskbarWindowHostThreadingTests
     }
 
     [Fact]
-    public void Relocate_UsesTaskbarClientCoordinatesReturnedByWindows()
+    public void Relocate_UsesPhysicalScreenCoordinatesWithoutExplorerParent()
     {
         using var ui = new WpfDispatcherThread();
         var native = CreateNativeApi();
-        native.ClientOffsetX = 3;
-        native.ClientOffsetY = 3;
         var resources = ui.Invoke(() => CreateHostResources(native));
         try
         {
             var placement = TaskbarPlacementCalculator.Calculate(native.AppBarRectangle, native.Dpi);
             Assert.Equal(
                 new PhysicalRect(
-                    placement.LeftPhysicalPixel + native.ClientOffsetX,
-                    native.ClientOffsetY,
-                    placement.RightPhysicalPixel + native.ClientOffsetX,
-                    native.ClientOffsetY + placement.BottomPhysicalPixel - placement.TopPhysicalPixel),
+                    placement.LeftPhysicalPixel,
+                    placement.TopPhysicalPixel,
+                    placement.RightPhysicalPixel,
+                    placement.BottomPhysicalPixel),
                 native.LastWindowPosition);
+            Assert.Equal(NativeMethods.HWND_TOPMOST, native.LastWindowInsertAfter);
+            Assert.Equal(0, native.WindowParent);
         }
         finally
         {

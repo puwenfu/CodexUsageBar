@@ -11,9 +11,16 @@ coordinates. It does not include credentials, account identifiers, raw Codex
 responses, or task content. Do not include logs or unredacted screenshots in
 public issues or pull requests.
 
-The local preferences file stores only whether the five-hour meter is hidden.
-The optional startup setting is a separate Windows Run registration. Neither
-location stores Codex authentication information.
+The local preferences file stores only display choices: whether the five-hour
+meter is hidden, the selected color and refresh style, the preferred display
+surface, and taskbar/Codex horizontal offsets. The optional startup setting is
+a separate Windows Run registration. Neither location stores Codex
+authentication information.
+
+While the right-click menu is open, the app observes mouse button-down screen
+coordinates only to decide whether a click occurred outside the menu. It does
+not observe keyboard input, record clicked content, or retain those
+coordinates, and the listener stops when the menu closes.
 
 For a security-sensitive concern, follow the private reporting route in
 [SECURITY.md](../SECURITY.md) rather than opening a public issue.

@@ -9,6 +9,7 @@ using CodexUsageBar.Core.Presentation;
 using CodexUsageBar.Core.Time;
 using CodexUsageBar.Windows;
 using CodexUsageBar.Windows.Geometry;
+using CodexUsageBar.Windows.Input;
 using CodexUsageBar.Windows.Startup;
 using CodexUsageBar.Windows.Taskbar;
 
@@ -65,18 +66,25 @@ public partial class App : Application
             startupResources.Forget(client);
 
             var taskbarLocator = new TaskbarLocator();
-            if (!taskbarLocator.TryGetPrimary(out var taskbar))
+            const double fallbackTaskbarHeightDip = 48d;
+            const double fallbackRingDiameterDip = 36d;
+            var taskbarHeightDip = fallbackTaskbarHeightDip;
+            var ringDiameterDip = fallbackRingDiameterDip;
+            if (taskbarLocator.TryGetPrimary(out var taskbar))
             {
-                throw new InvalidOperationException("The supported primary taskbar is unavailable.");
+                var initialPlacement = TaskbarPlacementCalculator.Calculate(
+                    taskbar.Rectangle,
+                    taskbar.Dpi);
+                taskbarHeightDip = initialPlacement.HeightDip;
+                ringDiameterDip = initialPlacement.RingDiameterDip;
             }
 
-            var placement = TaskbarPlacementCalculator.Calculate(taskbar.Rectangle, taskbar.Dpi);
             var initialDisplay = presentation.Create(
                 snapshot: null,
                 WidgetStatus.Ready,
                 lastSuccessfulAt: null,
                 recoveryHint: null);
-            var viewModel = new WidgetViewModel(initialDisplay, placement.RingDiameterDip);
+            var viewModel = new WidgetViewModel(initialDisplay, ringDiameterDip);
             coordinator.Attach(viewModel);
 
             var executablePath = Environment.ProcessPath
@@ -84,19 +92,20 @@ public partial class App : Application
             var startupRegistration = new StartupRegistration(executablePath);
             var window = new WidgetWindow(
                 viewModel,
-                placement.HeightDip,
+                taskbarHeightDip,
                 coordinator,
                 startupRegistration,
                 preferences,
                 RequestExit,
                 debugViewModel,
-                systemThemeWatcher);
+                systemThemeWatcher,
+                new SystemMouseButtonMonitor());
             startupResources.Forget(systemThemeWatcher);
             startupResources.Own(new DelegateDisposable(window.Close));
 
-            var host = startupResources.Own(new TaskbarWindowHost());
+            var host = startupResources.Own(
+                new WidgetPlacementCoordinator(window, preferences, logger));
             host.WindowLost += OnTaskbarWindowLost;
-            host.Attach(window);
 
             var runtime = new AppRuntime(coordinator, host, logger, guard, window.Close);
             startupResources.ReleaseAll();
