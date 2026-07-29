@@ -131,7 +131,7 @@ public sealed class ContextMenuRenderTests
         });
         icon.Children.Add(new ProgressArc
         {
-            Progress = 85,
+            Progress = 75,
             StrokeThickness = 1.35,
             Stroke = new LinearGradientBrush(
                 Color.FromRgb(0x8D, 0x9E, 0xFC),

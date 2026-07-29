@@ -39,6 +39,7 @@ internal static class NativeMethods
     internal const int WM_APP = 0x8000;
     internal const int WH_MOUSE_LL = 14;
     internal const uint NIM_ADD = 0x00000000;
+    internal const uint NIM_MODIFY = 0x00000001;
     internal const uint NIM_DELETE = 0x00000002;
     internal const uint NIM_SETVERSION = 0x00000004;
     internal const uint NOTIFYICON_VERSION_4 = 4;
@@ -142,6 +143,25 @@ internal static class NativeMethods
     [DllImport("user32.dll")]
     internal static extern nint LoadIcon(nint hInstance, nint lpIconName);
 
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool DestroyIcon(nint hIcon);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    internal static extern nint CreateIconIndirect(ref ICONINFO iconInfo);
+
+    [DllImport("gdi32.dll", SetLastError = true)]
+    internal static extern nint CreateBitmap(
+        int width,
+        int height,
+        uint planes,
+        uint bitsPerPixel,
+        byte[]? bits);
+
+    [DllImport("gdi32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool DeleteObject(nint graphicsObject);
+
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     internal static extern bool SetForegroundWindow(nint hWnd);
@@ -199,6 +219,17 @@ internal static class NativeMethods
         internal uint Flags;
         internal uint Time;
         internal nuint ExtraInfo;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct ICONINFO
+    {
+        [MarshalAs(UnmanagedType.Bool)]
+        internal bool IsIcon;
+        internal uint HotspotX;
+        internal uint HotspotY;
+        internal nint MaskBitmap;
+        internal nint ColorBitmap;
     }
 
     [StructLayout(LayoutKind.Sequential)]

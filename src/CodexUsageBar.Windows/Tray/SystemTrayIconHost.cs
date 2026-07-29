@@ -15,7 +15,9 @@ public sealed class SystemTrayIconHost : IDisposable
     private readonly ISystemTrayNativeApi _nativeApi;
     private HwndSource? _source;
     private nint _windowHandle;
+    private nint _dynamicIconHandle;
     private int _taskbarCreatedMessage;
+    private SystemTrayIconState? _iconState;
     private bool _isVisible;
     private bool _trayMenuSessionActive;
     private bool _isDisposed;
@@ -71,6 +73,42 @@ public sealed class SystemTrayIconHost : IDisposable
     }
 
     public bool IsVisible => _isVisible;
+
+    public bool UpdateIcon(SystemTrayIconState state)
+    {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        _window.Dispatcher.VerifyAccess();
+        if (_iconState == state && _dynamicIconHandle != 0)
+        {
+            return true;
+        }
+
+        var nextIconHandle = _nativeApi.CreateProgressIcon(state);
+        if (nextIconHandle == 0)
+        {
+            return false;
+        }
+
+        if (_isVisible)
+        {
+            var data = CreateIconData(nextIconHandle);
+            if (!_nativeApi.NotifyIcon(NativeMethods.NIM_MODIFY, ref data))
+            {
+                _ = _nativeApi.DestroyIcon(nextIconHandle);
+                return false;
+            }
+        }
+
+        var previousIconHandle = _dynamicIconHandle;
+        _dynamicIconHandle = nextIconHandle;
+        _iconState = state;
+        if (previousIconHandle != 0)
+        {
+            _ = _nativeApi.DestroyIcon(previousIconHandle);
+        }
+
+        return true;
+    }
 
     public void NotifyContextMenuActivity(bool isOpen)
     {
@@ -257,7 +295,7 @@ public sealed class SystemTrayIconHost : IDisposable
         _ = _nativeApi.NotifyIcon(NativeMethods.NIM_DELETE, ref data);
     }
 
-    private NativeMethods.NOTIFYICONDATA CreateIconData() =>
+    private NativeMethods.NOTIFYICONDATA CreateIconData(nint iconHandle = default) =>
         new()
         {
             cbSize = checked((uint)Marshal.SizeOf<NativeMethods.NOTIFYICONDATA>()),
@@ -267,7 +305,11 @@ public sealed class SystemTrayIconHost : IDisposable
                 NativeMethods.NIF_ICON |
                 NativeMethods.NIF_TIP,
             uCallbackMessage = CallbackMessage,
-            hIcon = _nativeApi.LoadApplicationIcon(),
+            hIcon = iconHandle != 0
+                ? iconHandle
+                : _dynamicIconHandle != 0
+                    ? _dynamicIconHandle
+                    : _nativeApi.LoadApplicationIcon(),
             szTip = "Codex Usage Bar",
             szInfo = string.Empty,
             szInfoTitle = string.Empty,
@@ -280,6 +322,13 @@ public sealed class SystemTrayIconHost : IDisposable
         {
             DeleteIcon();
             _isVisible = false;
+        }
+
+        if (_dynamicIconHandle != 0)
+        {
+            _ = _nativeApi.DestroyIcon(_dynamicIconHandle);
+            _dynamicIconHandle = 0;
+            _iconState = null;
         }
 
         _source?.RemoveHook(WindowProcedure);

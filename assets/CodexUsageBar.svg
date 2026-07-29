@@ -23,6 +23,6 @@
           stroke="url(#progress)"
           stroke-width="40"
           stroke-linecap="round"
-          stroke-dasharray="77.42 22.58"
+          stroke-dasharray="67.42 32.58"
           transform="rotate(-90 128 128)" />
 </svg>

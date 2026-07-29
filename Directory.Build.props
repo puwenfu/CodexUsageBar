@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <VersionPrefix>1.4.0</VersionPrefix>
+    <VersionPrefix>1.4.1</VersionPrefix>
     <TargetFramework>net8.0-windows10.0.22000.0</TargetFramework>
     <LangVersion>12.0</LangVersion>
     <Nullable>enable</Nullable>

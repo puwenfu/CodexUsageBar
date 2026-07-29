@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-07-29
+### Added
+- Added a live system-tray quota meter that shows the five-hour percentage, falls back to the weekly quota when needed, and follows the selected color theme and Windows appearance.
+
+### Changed
+- Refined the application icon and theme-preview rings to match the new tray meter presentation.
+
 ## [1.4.0] - 2026-07-28
 ### Added
 - Added a persistent system-tray entry and display-position controls for the taskbar, Codex sidebar, or tray-only use.
