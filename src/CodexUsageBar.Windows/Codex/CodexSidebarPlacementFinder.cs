@@ -10,14 +10,14 @@ public sealed class CodexSidebarPlacementFinder
     internal const double SidebarTargetWidthDip = 416d / 3d;
     internal const int SidebarHorizontalNudgePhysicalPixels = -8;
     internal const double AccountFooterHeightDip = 44d;
-    internal const double AccountFooterBottomInsetDip = 6d;
-    internal const int AccountFooterVerticalNudgePhysicalPixels = -1;
     internal const double SidebarRightSafetyMarginDip = 0.5d;
     private const string CodexProcessName = "ChatGPT";
     private readonly IWindowsNativeApi _nativeApi;
     private readonly Func<IReadOnlyList<uint>> _processIdProvider;
 
     public string LastFailureReason { get; private set; } = string.Empty;
+
+    public bool IsAnchorWindowForeground { get; private set; }
 
     public CodexSidebarPlacementFinder()
         : this(
@@ -54,6 +54,7 @@ public sealed class CodexSidebarPlacementFinder
         placement = null!;
         horizontalOffsetRange = default;
         LastFailureReason = string.Empty;
+        IsAnchorWindowForeground = false;
         if (!double.IsFinite(horizontalOffsetDip))
         {
             LastFailureReason = "InvalidHorizontalOffset";
@@ -78,25 +79,34 @@ public sealed class CodexSidebarPlacementFinder
                 if (!_nativeApi.IsWindow(windowHandle) ||
                     !_nativeApi.IsWindowVisibleAndNotMinimized(windowHandle) ||
                     _nativeApi.IsWindowCloaked(windowHandle) ||
-                    !_nativeApi.TryGetWindowRectangle(windowHandle, out var windowBounds))
+                    !_nativeApi.TryGetWindowRectangle(
+                        windowHandle,
+                        out var outerWindowBounds))
                 {
                     continue;
                 }
 
                 foundVisibleWindow = true;
+                var placementBounds =
+                    _nativeApi.TryGetWindowClientRectangle(
+                        windowHandle,
+                        out var clientBounds)
+                        ? clientBounds
+                        : outerWindowBounds;
                 var dpi = _nativeApi.GetDpiForWindow(windowHandle);
                 var sidebarRightPhysicalPixel =
-                    GetConservativeSidebarRightBoundary(windowBounds, dpi);
+                    GetConservativeSidebarRightBoundary(placementBounds, dpi);
                 if (TryCalculate(
                         windowHandle,
-                        windowBounds,
+                        placementBounds,
                         dpi,
                         sidebarRightPhysicalPixel,
                         horizontalOffsetDip,
                         out var candidatePlacement,
                         out var candidateHorizontalOffsetRange))
                 {
-                    var area = checked((long)windowBounds.Width * windowBounds.Height);
+                    var area = checked(
+                        (long)outerWindowBounds.Width * outerWindowBounds.Height);
                     if (area > bestWindowArea)
                     {
                         bestPlacement = candidatePlacement;
@@ -117,6 +127,8 @@ public sealed class CodexSidebarPlacementFinder
 
         placement = bestPlacement;
         horizontalOffsetRange = bestHorizontalOffsetRange;
+        IsAnchorWindowForeground =
+            _nativeApi.GetForegroundWindow() == placement.AnchorWindowHandle;
         LastFailureReason = string.Empty;
         return true;
     }
@@ -191,8 +203,7 @@ public sealed class CodexSidebarPlacementFinder
         }
 
         var scale = dpi / 96d;
-        if (windowBounds.Height / scale <
-                AccountFooterHeightDip + AccountFooterBottomInsetDip ||
+        if (windowBounds.Height / scale < AccountFooterHeightDip ||
             sidebarRightPhysicalPixel <= windowBounds.Left ||
             sidebarRightPhysicalPixel > windowBounds.Right)
         {
@@ -224,10 +235,7 @@ public sealed class CodexSidebarPlacementFinder
         var left = baseLeft + appliedOffsetPhysicalPixels;
 
         var height = checked((int)Math.Round(AccountFooterHeightDip * scale));
-        var bottomInset = checked(
-            (int)Math.Round(AccountFooterBottomInsetDip * scale));
-        var bottom = windowBounds.Bottom - bottomInset +
-            AccountFooterVerticalNudgePhysicalPixels;
+        var bottom = windowBounds.Bottom;
         var top = bottom - height;
         placement = new CodexSidebarPlacement(
             ownerWindowHandle,

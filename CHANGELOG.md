@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.2] - 2026-08-05
+### Changed
+- Reduced the background-track weight across the taskbar widget, theme previews, and system-tray meter so the remaining-quota arc reads more clearly.
+- Kept Codex-sidebar placement visible only while its Codex window is active, falling back to the system tray instead of covering unrelated applications.
+
+### Fixed
+- Corrected Codex-sidebar alignment in both windowed and maximized states by positioning against the actual client area instead of invisible resize borders.
+
 ## [1.4.1] - 2026-07-29
 ### Added
 - Added a live system-tray quota meter that shows the five-hour percentage, falls back to the weekly quota when needed, and follows the selected color theme and Windows appearance.

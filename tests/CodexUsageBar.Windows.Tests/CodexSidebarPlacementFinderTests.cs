@@ -23,7 +23,7 @@ public sealed class CodexSidebarPlacementFinderTests
 
         Assert.True(found);
         Assert.Equal(mainWindow, placement.AnchorWindowHandle);
-        Assert.Equal(new PhysicalRect(166, 2024, 374, 2090), placement.Bounds);
+        Assert.Equal(new PhysicalRect(166, 2034, 374, 2100), placement.Bounds);
     }
 
     [Fact]
@@ -42,7 +42,111 @@ public sealed class CodexSidebarPlacementFinderTests
 
         Assert.True(found);
         Assert.Equal(mainWindow, placement.AnchorWindowHandle);
-        Assert.Equal(new PhysicalRect(166, 2012, 374, 2078), placement.Bounds);
+        Assert.Equal(new PhysicalRect(166, 2022, 374, 2088), placement.Bounds);
+    }
+
+    [Fact]
+    public void MaximizedWindow_UsesClientBoundsInsteadOfInvisibleResizeFrame()
+    {
+        const uint processId = 29184;
+        var mainWindow = new nint(20);
+        var nativeApi = new FakeWindowsNativeApi { Dpi = 144 };
+        nativeApi.TopLevelWindowsByProcessId[processId] = [mainWindow];
+        nativeApi.WindowRectangles[mainWindow] = new PhysicalRect(-11, -11, 3852, 2099);
+        nativeApi.WindowClientRectangles[mainWindow] = new PhysicalRect(-1, -1, 3840, 2089);
+        var finder = new CodexSidebarPlacementFinder(
+            nativeApi,
+            () => [processId]);
+
+        var found = finder.TryFind(out var placement);
+
+        Assert.True(found);
+        Assert.Equal(new PhysicalRect(165, 2023, 373, 2089), placement.Bounds);
+    }
+
+    [Fact]
+    public void WindowedWindow_PreservesExistingOuterMinusOnePlacement()
+    {
+        const uint processId = 29184;
+        var mainWindow = new nint(20);
+        var nativeApi = new FakeWindowsNativeApi { Dpi = 144 };
+        nativeApi.TopLevelWindowsByProcessId[processId] = [mainWindow];
+        nativeApi.WindowRectangles[mainWindow] = new PhysicalRect(100, 100, 1837, 1659);
+        nativeApi.WindowClientRectangles[mainWindow] = new PhysicalRect(100, 100, 1837, 1658);
+        var finder = new CodexSidebarPlacementFinder(
+            nativeApi,
+            () => [processId]);
+
+        var found = finder.TryFind(out var placement);
+
+        Assert.True(found);
+        Assert.Equal(new PhysicalRect(266, 1592, 474, 1658), placement.Bounds);
+    }
+
+    [Fact]
+    public void ClientBoundsUnavailable_FallsBackToOuterWindowBounds()
+    {
+        const uint processId = 29184;
+        var mainWindow = new nint(20);
+        var nativeApi = new FakeWindowsNativeApi
+        {
+            Dpi = 144,
+            GetWindowClientRectangleSucceeds = false,
+        };
+        nativeApi.TopLevelWindowsByProcessId[processId] = [mainWindow];
+        nativeApi.WindowRectangles[mainWindow] = new PhysicalRect(0, 0, 1737, 2088);
+        var finder = new CodexSidebarPlacementFinder(
+            nativeApi,
+            () => [processId]);
+
+        var found = finder.TryFind(out var placement);
+
+        Assert.True(found);
+        Assert.Equal(new PhysicalRect(166, 2022, 374, 2088), placement.Bounds);
+    }
+
+    [Fact]
+    public void ForegroundMainWindow_IsReportedAsForegroundAnchor()
+    {
+        const uint processId = 29184;
+        var mainWindow = new nint(20);
+        var nativeApi = new FakeWindowsNativeApi
+        {
+            Dpi = 144,
+            ForegroundWindowHandle = mainWindow,
+        };
+        nativeApi.TopLevelWindowsByProcessId[processId] = [mainWindow];
+        nativeApi.WindowRectangles[mainWindow] = new PhysicalRect(0, 0, 1737, 2088);
+        var finder = new CodexSidebarPlacementFinder(
+            nativeApi,
+            () => [processId]);
+
+        var found = finder.TryFind(out _);
+
+        Assert.True(found);
+        Assert.True(finder.IsAnchorWindowForeground);
+    }
+
+    [Fact]
+    public void DifferentForegroundWindow_IsReportedAsInactiveAnchor()
+    {
+        const uint processId = 29184;
+        var mainWindow = new nint(20);
+        var nativeApi = new FakeWindowsNativeApi
+        {
+            Dpi = 144,
+            ForegroundWindowHandle = new nint(99),
+        };
+        nativeApi.TopLevelWindowsByProcessId[processId] = [mainWindow];
+        nativeApi.WindowRectangles[mainWindow] = new PhysicalRect(0, 0, 1737, 2088);
+        var finder = new CodexSidebarPlacementFinder(
+            nativeApi,
+            () => [processId]);
+
+        var found = finder.TryFind(out _);
+
+        Assert.True(found);
+        Assert.False(finder.IsAnchorWindowForeground);
     }
 
     [Fact]
@@ -69,7 +173,7 @@ public sealed class CodexSidebarPlacementFinderTests
             out var placement);
 
         Assert.True(found);
-        Assert.Equal(new PhysicalRect(166, 2012, 374, 2078), placement.Bounds);
+        Assert.Equal(new PhysicalRect(166, 2022, 374, 2088), placement.Bounds);
         Assert.Equal(416d / 3d, placement.WidthDip, precision: 6);
         Assert.Equal(44d, placement.HeightDip);
     }
@@ -85,7 +189,7 @@ public sealed class CodexSidebarPlacementFinderTests
             out var placement);
 
         Assert.True(found);
-        Assert.Equal(new PhysicalRect(3412, 2012, 3620, 2078), placement.Bounds);
+        Assert.Equal(new PhysicalRect(3412, 2022, 3620, 2088), placement.Bounds);
     }
 
     [Fact]
@@ -102,10 +206,10 @@ public sealed class CodexSidebarPlacementFinderTests
     }
 
     [Theory]
-    [InlineData(96u, 849, 893)]
-    [InlineData(144u, 824, 890)]
-    [InlineData(192u, 799, 887)]
-    public void AccountFooterBottomInset_ScalesWithDpi(
+    [InlineData(96u, 856, 900)]
+    [InlineData(144u, 834, 900)]
+    [InlineData(192u, 812, 900)]
+    public void AccountFooterBottomEdge_MatchesClientBottomAtEveryDpi(
         uint dpi,
         int expectedTop,
         int expectedBottom)

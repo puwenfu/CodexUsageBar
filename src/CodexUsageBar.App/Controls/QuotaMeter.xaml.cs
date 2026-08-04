@@ -12,6 +12,7 @@ public partial class QuotaMeter : UserControl
     private static readonly Duration BreathingDuration = new(TimeSpan.FromSeconds(0.8));
     private static readonly Duration ExitFadeDuration = new(TimeSpan.FromMilliseconds(180));
     private const double ActiveRefreshHighlightOpacity = 1d;
+    private const double TrackStrokeScale = 0.5d;
     private readonly DispatcherTimer _exitFadeTimer;
     private bool _animationsEnabled = SystemParameters.ClientAreaAnimation;
 
@@ -87,7 +88,7 @@ public partial class QuotaMeter : UserControl
     private void ApplyDiameter(double diameter)
     {
         var strokeThickness = diameter * 0.1d;
-        Track.StrokeThickness = strokeThickness;
+        Track.StrokeThickness = strokeThickness * TrackStrokeScale;
         Arc.StrokeThickness = strokeThickness;
         RefreshArc.StrokeThickness = strokeThickness;
         Halo.StrokeThickness = strokeThickness * 1.45d;

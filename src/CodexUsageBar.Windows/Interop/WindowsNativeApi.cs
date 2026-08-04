@@ -13,6 +13,8 @@ internal sealed class WindowsNativeApi : IWindowsNativeApi
 
     public nint FindWindow(string className) => NativeMethods.FindWindow(className, null);
 
+    public nint GetForegroundWindow() => NativeMethods.GetForegroundWindow();
+
     public IReadOnlyList<nint> EnumerateTopLevelWindows(uint processId)
     {
         var windows = new List<nint>();
@@ -38,6 +40,38 @@ internal sealed class WindowsNativeApi : IWindowsNativeApi
         var found = NativeMethods.GetWindowRect(windowHandle, out var nativeRectangle);
         rectangle = ToPhysicalRect(nativeRectangle);
         return found;
+    }
+
+    public bool TryGetWindowClientRectangle(nint windowHandle, out PhysicalRect rectangle)
+    {
+        rectangle = default;
+        if (!NativeMethods.GetClientRect(windowHandle, out var clientRectangle))
+        {
+            return false;
+        }
+
+        var topLeft = new NativeMethods.POINT
+        {
+            X = clientRectangle.Left,
+            Y = clientRectangle.Top,
+        };
+        var bottomRight = new NativeMethods.POINT
+        {
+            X = clientRectangle.Right,
+            Y = clientRectangle.Bottom,
+        };
+        if (!NativeMethods.ClientToScreen(windowHandle, ref topLeft) ||
+            !NativeMethods.ClientToScreen(windowHandle, ref bottomRight))
+        {
+            return false;
+        }
+
+        rectangle = new PhysicalRect(
+            topLeft.X,
+            topLeft.Y,
+            bottomRight.X,
+            bottomRight.Y);
+        return rectangle.Width > 0 && rectangle.Height > 0;
     }
 
     public uint GetDpiForWindow(nint windowHandle) => NativeMethods.GetDpiForWindow(windowHandle);

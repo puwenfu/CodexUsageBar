@@ -70,9 +70,20 @@ internal static class NativeMethods
         nint windowHandle,
         out uint processId);
 
+    [DllImport("user32.dll")]
+    internal static extern nint GetForegroundWindow();
+
     [DllImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     internal static extern bool GetWindowRect(nint hWnd, out RECT lpRect);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool GetClientRect(nint hWnd, out RECT lpRect);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool ClientToScreen(nint hWnd, ref POINT lpPoint);
 
     [DllImport("user32.dll")]
     internal static extern uint GetDpiForWindow(nint hWnd);

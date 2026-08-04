@@ -6,7 +6,9 @@ internal interface IWindowsNativeApi
 {
     nint FindWindow(string className);
     IReadOnlyList<nint> EnumerateTopLevelWindows(uint processId);
+    nint GetForegroundWindow();
     bool TryGetWindowRectangle(nint windowHandle, out PhysicalRect rectangle);
+    bool TryGetWindowClientRectangle(nint windowHandle, out PhysicalRect rectangle);
     uint GetDpiForWindow(nint windowHandle);
     bool TryGetTaskbarPosition(out uint edge, out PhysicalRect rectangle);
     uint GetTaskbarState();

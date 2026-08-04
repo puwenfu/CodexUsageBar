@@ -8,6 +8,8 @@ internal sealed class FakeWindowsNativeApi : IWindowsNativeApi
 {
     public nint WindowHandle { get; set; }
 
+    public nint ForegroundWindowHandle { get; set; }
+
     public PhysicalRect AppBarRectangle { get; init; }
 
     public uint AppBarEdge { get; init; }
@@ -44,6 +46,8 @@ internal sealed class FakeWindowsNativeApi : IWindowsNativeApi
 
     public bool WindowCloaked { get; set; }
 
+    public bool GetWindowClientRectangleSucceeds { get; set; } = true;
+
     public bool SetWindowPositionSucceeds { get; set; } = true;
 
     public int SetWindowPositionCallCount { get; private set; }
@@ -57,6 +61,8 @@ internal sealed class FakeWindowsNativeApi : IWindowsNativeApi
     public Dictionary<uint, IReadOnlyList<nint>> TopLevelWindowsByProcessId { get; } = [];
 
     public Dictionary<nint, PhysicalRect> WindowRectangles { get; } = [];
+
+    public Dictionary<nint, PhysicalRect> WindowClientRectangles { get; } = [];
 
     public Dictionary<nint, nint> WindowAboveByWindow { get; } = [];
 
@@ -75,6 +81,8 @@ internal sealed class FakeWindowsNativeApi : IWindowsNativeApi
         return WindowHandle;
     }
 
+    public nint GetForegroundWindow() => ForegroundWindowHandle;
+
     public IReadOnlyList<nint> EnumerateTopLevelWindows(uint processId) =>
         TopLevelWindowsByProcessId.TryGetValue(processId, out var windows)
             ? windows
@@ -84,6 +92,14 @@ internal sealed class FakeWindowsNativeApi : IWindowsNativeApi
     {
         rectangle = WindowRectangles.GetValueOrDefault(windowHandle, AppBarRectangle);
         return true;
+    }
+
+    public bool TryGetWindowClientRectangle(nint windowHandle, out PhysicalRect rectangle)
+    {
+        rectangle = WindowClientRectangles.GetValueOrDefault(
+            windowHandle,
+            WindowRectangles.GetValueOrDefault(windowHandle, AppBarRectangle));
+        return GetWindowClientRectangleSucceeds;
     }
 
     public uint GetDpiForWindow(nint windowHandle) => Dpi;

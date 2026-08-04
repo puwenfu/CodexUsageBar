@@ -43,6 +43,7 @@ public sealed class TaskbarWindowHostContractTests
             new[]
             {
                 "CallNextHookEx",
+                "ClientToScreen",
                 "CreateBitmap",
                 "CreateIconIndirect",
                 "DeleteObject",
@@ -50,7 +51,9 @@ public sealed class TaskbarWindowHostContractTests
                 "DwmGetWindowAttribute",
                 "EnumWindows",
                 "FindWindow",
+                "GetClientRect",
                 "GetDpiForWindow",
+                "GetForegroundWindow",
                 "GetMonitorInfo",
                 "GetModuleHandle",
                 "GetWindow",

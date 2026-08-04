@@ -10,6 +10,17 @@ namespace CodexUsageBar.App.Tests;
 [Collection(WpfTestCollection.Name)]
 public sealed class QuotaMeterRefreshAnimationTests
 {
+    [Theory]
+    [InlineData(22d)]
+    [InlineData(36d)]
+    public void TrackStroke_IsHalfOfProgressStroke(double diameter) => StaTest.Run(() =>
+    {
+        var meter = new QuotaMeter { RingDiameter = diameter };
+
+        Assert.Equal(meter.Arc.StrokeThickness / 2d, meter.Track.StrokeThickness, precision: 6);
+        Assert.Equal(meter.Arc.StrokeThickness, meter.RefreshArc.StrokeThickness, precision: 6);
+    });
+
     [Fact]
     public void RefreshingWithAnimationsEnabled_StartsRotationAndBreathing() => StaTest.Run(() =>
     {
