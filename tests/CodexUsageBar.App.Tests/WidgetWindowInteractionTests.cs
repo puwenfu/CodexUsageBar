@@ -937,7 +937,7 @@ public sealed class WidgetWindowInteractionTests
 
         var track = Assert.IsType<Ellipse>(icon.Children[0]);
         Assert.Null(track.Fill);
-        Assert.Equal(1.35d, track.StrokeThickness);
+        Assert.Equal(0.675d, track.StrokeThickness);
 
         var arc = Assert.IsType<ProgressArc>(icon.Children[1]);
         Assert.Equal(75d, arc.Progress);

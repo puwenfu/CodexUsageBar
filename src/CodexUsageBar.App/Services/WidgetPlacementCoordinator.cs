@@ -158,7 +158,8 @@ internal sealed class WidgetPlacementCoordinator : IDisposable
 
         var availability = new WidgetPlacementAvailability(
             hasFullTaskbar,
-            hasCodexSidebar);
+            hasCodexSidebar,
+            hasCodexSidebar && _codexFinder.IsAnchorWindowForeground);
         var resolved = WidgetPlacementPolicy.Resolve(
             _preferences.PlacementPreference,
             availability);

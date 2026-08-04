@@ -11,6 +11,7 @@ internal static class SystemTrayProgressIconRenderer
 {
     private const int IconSize = 32;
     private const double StrokeRatio = 0.15625d;
+    private const double TrackStrokeScale = 0.5d;
     private const double OuterMarginRatio = 0d;
     private const double MinimumSweepDegrees = 0.01d;
 
@@ -82,7 +83,9 @@ internal static class SystemTrayProgressIconRenderer
             var center = new Point(IconSize / 2d, IconSize / 2d);
             drawing.DrawEllipse(
                 brush: null,
-                new Pen(new SolidColorBrush(state.TrackColor), stroke),
+                new Pen(
+                    new SolidColorBrush(state.TrackColor),
+                    stroke * TrackStrokeScale),
                 center,
                 radius,
                 radius);

@@ -68,7 +68,7 @@
                             <Grid Width="11.7"
                                   Height="11.7">
                                 <Ellipse Stroke="{DynamicResource QuotaTrackBrush}"
-                                         StrokeThickness="1.35" />
+                                         StrokeThickness="0.675" />
                                 <controls:ProgressArc Progress="75"
                                                       Stroke="{StaticResource ThemeBluePreviewBrush}"
                                                       StrokeThickness="1.35" />
@@ -87,7 +87,7 @@
                             <Grid Width="11.7"
                                   Height="11.7">
                                 <Ellipse Stroke="{DynamicResource QuotaTrackBrush}"
-                                         StrokeThickness="1.35" />
+                                         StrokeThickness="0.675" />
                                 <controls:ProgressArc Progress="75"
                                                       Stroke="{StaticResource ThemePurplePreviewBrush}"
                                                       StrokeThickness="1.35" />
@@ -106,7 +106,7 @@
                             <Grid Width="11.7"
                                   Height="11.7">
                                 <Ellipse Stroke="{DynamicResource QuotaTrackBrush}"
-                                         StrokeThickness="1.35" />
+                                         StrokeThickness="0.675" />
                                 <controls:ProgressArc Progress="75"
                                                       Stroke="{StaticResource ThemeRosePreviewBrush}"
                                                       StrokeThickness="1.35" />
@@ -125,7 +125,7 @@
                             <Grid Width="11.7"
                                   Height="11.7">
                                 <Ellipse Stroke="{DynamicResource QuotaTrackBrush}"
-                                         StrokeThickness="1.35" />
+                                         StrokeThickness="0.675" />
                                 <controls:ProgressArc Progress="75"
                                                       Stroke="{StaticResource ThemeMintPreviewBrush}"
                                                       StrokeThickness="1.35" />
@@ -144,7 +144,7 @@
                             <Grid Width="11.7"
                                   Height="11.7">
                                 <Ellipse Stroke="{DynamicResource QuotaTrackBrush}"
-                                         StrokeThickness="1.35" />
+                                         StrokeThickness="0.675" />
                                 <controls:ProgressArc Progress="75"
                                                       Stroke="{StaticResource ThemeForestPreviewBrush}"
                                                       StrokeThickness="1.35" />
